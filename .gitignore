@@ -1,0 +1,36 @@
+# File cấu hình bỏ qua cho Git
+
+# Thư mục và file hệ thống
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# File cấu hình IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# File log
+*.log
+logs/
+
+# File tạm
+*.tmp
+*.temp
+
+# File backup
+*.bak
+*.backup
+
+# File môi trường (nếu có)
+.env
+.env.local
+
+# Node modules (nếu sau này có dùng)
+node_modules/
+
+# File database backup
+*.sql.bak
+
