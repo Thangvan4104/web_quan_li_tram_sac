@@ -1,0 +1,635 @@
+/**
+ * File: assets/css/nhanvien.css
+ * Mô tả: File CSS cho trang quản lý Nhân Viên
+ * 
+ * Tác giả: Hệ thống quản lý trạm sạc
+ * 
+ * Chức năng: Định nghĩa style cho các phần tử của trang nhân viên
+ *   - Section header và nút "Thêm Nhân Viên Mới"
+ *   - Search box và filter section (tìm kiếm và lọc theo trạm, chức vụ, trạng thái)
+ *   - Nhóm nhân viên theo trạm (nhanvien-group)
+ *   - Grid và cards nhân viên (nhanvien-grid, nhanvien-card)
+ *   - Actions buttons (Sửa, Xóa)
+ *   - Status badges (Đã duyệt, Chờ duyệt)
+ *   - Role badges (Admin, Nhân viên)
+ *   - Modal forms (Tạo/Sửa nhân viên)
+ *   - Responsive design cho mobile
+ */
+
+/* ============================================
+   SECTION HEADER
+   ============================================ */
+
+/* Header của section: Chứa tiêu đề và nút "Thêm Nhân Viên Mới" */
+.section-header {
+    display: flex;
+    justify-content: space-between;  /* Tiêu đề bên trái, nút bên phải */
+    align-items: center;  /* Căn giữa theo chiều dọc */
+    margin-bottom: 24px;
+    flex-wrap: wrap;  /* Cho phép xuống dòng trên màn hình nhỏ */
+    gap: 20px;  /* Khoảng cách giữa các phần tử */
+}
+
+/* Tiêu đề section */
+.section-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* ============================================
+   SEARCH BOX
+   ============================================ */
+
+/* Ô tìm kiếm với icon bên trong */
+.search-box {
+    position: relative;  /* Để đặt icon ở vị trí absolute bên trong */
+    display: flex;
+    align-items: center;
+}
+
+/* Icon tìm kiếm (Font Awesome) */
+.search-box i {
+    position: absolute;  /* Đặt ở vị trí tuyệt đối */
+    left: 12px;  /* Cách trái 12px */
+    color: var(--text-secondary);
+    z-index: 1;  /* Đảm bảo icon hiển thị trên input */
+}
+
+/* Input tìm kiếm */
+.search-box input {
+    padding: 10px 12px 10px 40px;  /* Padding trái lớn hơn (40px) để chừa chỗ cho icon */
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    width: 300px;
+    transition: border-color 0.3s ease;  /* Hiệu ứng mượt khi focus */
+    background: white;
+}
+
+/* Focus state: Đổi màu border khi nhấp vào input */
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);  /* Shadow nhẹ màu primary */
+}
+
+/* ============================================
+   FILTER SECTION
+   ============================================ */
+
+/* Section chứa thanh tìm kiếm và các bộ lọc */
+.filter-section {
+    display: flex;
+    gap: 20px;  /* Khoảng cách giữa các filter */
+    margin-bottom: 20px;
+    flex-wrap: wrap;  /* Cho phép xuống dòng */
+    align-items: flex-end;  /* Căn các phần tử theo đáy */
+}
+
+/* Nhóm bộ lọc: Mỗi nhóm chứa label và select */
+.filter-group {
+    display: flex;
+    flex-direction: column;  /* Label trên, select dưới */
+    gap: 8px;  /* Khoảng cách giữa label và select */
+}
+
+/* Label cho filter group */
+.filter-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Select dropdown trong filter group */
+.filter-group select {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 200px;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+/* Focus state cho select */
+.filter-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* Thông tin số lượng kết quả hiển thị */
+.results-info {
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Text strong trong results-info */
+.results-info strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* ============================================
+   NHÂN VIÊN GROUP (Nhóm theo trạm)
+   ============================================ */
+
+/* Danh sách các nhóm nhân viên */
+.nhanvien-group-list {
+    display: flex;
+    flex-direction: column;  /* Các nhóm xếp theo chiều dọc */
+    gap: 32px;  /* Khoảng cách lớn giữa các nhóm */
+}
+
+/* Mỗi nhóm nhân viên (theo trạm) */
+.nhanvien-group {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+}
+
+/* Header của nhóm: Chứa tên trạm và số lượng nhân viên */
+.nhanvien-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+/* Tiêu đề nhóm (Tên trạm) */
+.nhanvien-group-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Số lượng nhân viên trong nhóm */
+.group-count {
+    font-size: 14px;
+    color: var(--text-secondary);
+    background: var(--bg-color);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+/* ============================================
+   NHÂN VIÊN GRID (Lưới cards nhân viên)
+   ============================================ */
+
+/* Grid layout cho danh sách nhân viên trong mỗi nhóm */
+.nhanvien-grid {
+    display: grid;
+    /* auto-fill: Tự động tạo số cột vừa với màn hình */
+    /* minmax(350px, 1fr): Mỗi cột tối thiểu 350px, tối đa chia đều không gian */
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;  /* Khoảng cách giữa các cards */
+}
+
+/* ============================================
+   NHÂN VIÊN CARD (Card thông tin nhân viên)
+   ============================================ */
+
+/* Card nhân viên: Container chứa thông tin một nhân viên */
+.nhanvien-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s ease;  /* Hiệu ứng mượt khi hover */
+    position: relative;
+}
+
+/* Hover effect: Nâng card lên và thêm shadow */
+.nhanvien-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);  /* Nâng lên 2px */
+}
+
+/* Header của card: Chứa mã NV, tên và badge trạng thái */
+.nhanvien-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;  /* Căn theo đầu */
+    margin-bottom: 16px;
+}
+
+/* Mã nhân viên (nhỏ, màu xám, font monospace) */
+.nhanvien-code {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-family: 'Courier New', monospace;  /* Font monospace để dễ đọc mã */
+}
+
+/* Tên nhân viên */
+.nhanvien-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+/* ============================================
+   STATUS BADGES (Badge trạng thái duyệt)
+   ============================================ */
+
+/* Badge trạng thái (Đã duyệt / Chờ duyệt) */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;  /* Không xuống dòng */
+}
+
+/* Badge: Đã duyệt (màu xanh) */
+.status-badge.approved {
+    background-color: #d1fae5;  /* Xanh lá nhạt */
+    color: #065f46;  /* Xanh lá đậm */
+}
+
+/* Badge: Chờ duyệt / Khóa (màu vàng) */
+.status-badge.pending {
+    background-color: #fef3c7;  /* Vàng nhạt */
+    color: #92400e;  /* Vàng đậm */
+}
+
+/* ============================================
+   ROLE BADGES (Badge vai trò: Admin/Nhân viên)
+   ============================================ */
+
+/* Badge vai trò trong hệ thống */
+.admin-badge {
+    background-color: #fee2e2;  /* Đỏ nhạt */
+    color: #991b1b;  /* Đỏ đậm */
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.staff-badge {
+    background-color: #e0e7ff;  /* Xanh dương nhạt */
+    color: #3730a3;  /* Xanh dương đậm */
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ============================================
+   NHÂN VIÊN INFO (Thông tin chi tiết)
+   ============================================ */
+
+/* Container chứa thông tin chi tiết nhân viên */
+.nhanvien-info {
+    margin-bottom: 16px;
+}
+
+/* Mỗi item thông tin (chức vụ, vai trò, email, SĐT) */
+.nhanvien-info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;  /* Khoảng cách giữa icon và text */
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Icon trong item thông tin (Font Awesome) */
+.nhanvien-info-item i {
+    width: 16px;  /* Cố định chiều rộng để icon thẳng hàng */
+    color: var(--primary-color);
+    text-align: center;
+}
+
+/* ============================================
+   NHÂN VIÊN ACTIONS (Các nút hành động)
+   ============================================ */
+
+/* Container chứa các nút Sửa và Xóa */
+.nhanvien-actions {
+    display: flex;
+    gap: 8px;  /* Khoảng cách giữa các nút */
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);  /* Đường kẻ ngăn cách */
+}
+
+/* Button trong actions: Sửa và Xóa */
+.nhanvien-actions .btn {
+    flex: 1;  /* Chia đều không gian (mỗi nút chiếm 50%) */
+    justify-content: center;  /* Căn giữa nội dung */
+}
+
+/* ============================================
+   MODAL STYLES (Modal tạo/sửa nhân viên)
+   ============================================ */
+
+/* Modal overlay (lớp phủ nền) */
+.modal {
+    display: none;  /* Ẩn mặc định */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);  /* Nền đen mờ */
+    z-index: 1000;  /* Hiển thị trên tất cả */
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Hiển thị modal khi có class 'show' */
+.modal.show {
+    display: flex;
+}
+
+/* Nội dung modal (form) */
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;  /* Chiều cao tối đa 90% viewport */
+    overflow-y: auto;  /* Cho phép scroll nếu nội dung dài */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    animation: modalSlideIn 0.3s ease;  /* Hiệu ứng xuất hiện */
+}
+
+/* Animation cho modal xuất hiện */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header của modal */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Tiêu đề modal */
+.modal-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Nút đóng modal (X) */
+.modal-header .close {
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+/* Hover effect cho nút đóng */
+.modal-header .close:hover {
+    color: var(--text-primary);
+}
+
+/* Form trong modal */
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Form group: Mỗi nhóm chứa label và input/select */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Label trong form */
+.form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Dấu * bắt buộc (màu đỏ) */
+.required {
+    color: #ef4444;
+    margin-left: 4px;
+}
+
+/* Input trong form */
+.form-group input,
+.form-group select {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+    font-family: inherit;
+}
+
+/* Focus state cho input/select */
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Thông tin bổ sung trong form (ví dụ: mật khẩu mặc định) */
+.form-info {
+    background: #eff6ff;  /* Xanh dương rất nhạt */
+    border: 1px solid #bfdbfe;  /* Xanh dương nhạt */
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: start;
+    gap: 10px;
+    font-size: 13px;
+    color: #1e40af;  /* Xanh dương đậm */
+}
+
+/* Icon trong form-info */
+.form-info i {
+    color: #3b82f6;  /* Xanh dương */
+    margin-top: 2px;
+}
+
+/* Actions của form (nút Hủy và Lưu) */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;  /* Căn bên phải */
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* ============================================
+   EMPTY STATE (Trạng thái rỗng)
+   ============================================ */
+
+/* Container hiển thị khi không có dữ liệu */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+}
+
+/* Icon trong empty state */
+.empty-state i {
+    font-size: 48px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* Tiêu đề trong empty state */
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+/* Mô tả trong empty state */
+.empty-state p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* ============================================
+   ERROR MESSAGE (Thông báo lỗi)
+   ============================================ */
+
+/* Container thông báo lỗi */
+.error-message {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fef2f2;  /* Đỏ rất nhạt */
+    border: 1px solid #fecaca;  /* Đỏ nhạt */
+    border-radius: 12px;
+    color: #991b1b;  /* Đỏ đậm */
+}
+
+/* Icon lỗi */
+.error-message i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: #dc2626;
+}
+
+/* Tiêu đề lỗi */
+.error-message h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #991b1b;
+}
+
+/* Mô tả lỗi */
+.error-message p {
+    font-size: 14px;
+    margin: 0 0 20px 0;
+    color: #7f1d1d;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN (Thiết kế đáp ứng)
+   ============================================ */
+
+/* Media query cho màn hình nhỏ hơn 768px (tablet và mobile) */
+@media (max-width: 768px) {
+    /* Grid nhân viên thành 1 cột */
+    .nhanvien-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Search box full width */
+    .search-box input {
+        width: 100%;
+    }
+    
+    /* Section header thành cột (tiêu đề và nút xếp dọc) */
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;  /* Căng toàn bộ chiều rộng */
+    }
+    
+    /* Filter section thành cột trên mobile */
+    .filter-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    /* Filter group full width trên mobile */
+    .filter-group {
+        width: 100%;
+    }
+    
+    .filter-group select {
+        width: 100%;
+        min-width: unset;  /* Bỏ min-width */
+    }
+    
+    /* Modal content full width trên mobile */
+    .modal-content {
+        max-width: 100%;
+        padding: 20px;
+        max-height: 95vh;
+    }
+    
+    /* Form actions thành cột trên mobile */
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Media query cho màn hình rất nhỏ (nhỏ hơn 480px) */
+@media (max-width: 480px) {
+    /* Padding nhỏ hơn cho group */
+    .nhanvien-group {
+        padding: 16px;
+    }
+    
+    /* Font size nhỏ hơn cho header */
+    .nhanvien-group-header h3 {
+        font-size: 18px;
+    }
+    
+    /* Padding nhỏ hơn cho card */
+    .nhanvien-card {
+        padding: 16px;
+    }
+}
+

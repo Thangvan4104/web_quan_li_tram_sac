@@ -1,0 +1,93 @@
+/**
+ * File: assets/css/giasac.css
+ * Mô tả: File CSS cho trang quản lý Giá Sạc
+ */
+
+.giasac-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+.giasac-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s ease;
+}
+
+.giasac-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.giasac-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 16px;
+}
+
+.giasac-magia {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-family: 'Courier New', monospace;
+}
+
+.giasac-dongia {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-top: 8px;
+}
+
+.giasac-info {
+    margin-bottom: 16px;
+}
+
+.giasac-info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.giasac-info-item i {
+    width: 16px;
+    color: var(--primary-color);
+}
+
+.status-badge.dang-ap-dung {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.het-hieu-luc {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.giasac-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.giasac-actions .btn {
+    flex: 1;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .giasac-grid {
+        grid-template-columns: 1fr;
+    }
+}
+

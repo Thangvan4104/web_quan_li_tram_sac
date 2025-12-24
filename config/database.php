@@ -48,8 +48,17 @@ function getDBConnection() {
         // Trả về đối tượng kết nối
         return $conn;
     } catch (Exception $e) {
-        // Nếu có lỗi, dừng chương trình và hiển thị thông báo lỗi
-        die("Database connection error: " . $e->getMessage());
+        // Nếu có lỗi, trả về JSON error thay vì die() để tránh break JSON response
+        // Chỉ die() nếu chưa có header JSON được set
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+            http_response_code(500);
+            echo json_encode(['error' => 'Database connection error: ' . $e->getMessage()], JSON_UNESCAPED_UNICODE);
+            exit();
+        } else {
+            // Nếu header đã được set, chỉ throw exception
+            throw $e;
+        }
     }
 }
 

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<!--
+    File: admin.html
+    Mô tả: Trang chủ dành cho quản trị viên (Admin) - hiển thị đầy đủ menu bao gồm cả menu admin-only
+    Chức năng: Giao diện người dùng chính với menu điều hướng và dashboard cho admin
+    Tác giả: Hệ thống quản lý trạm sạc
+-->
+<html lang="vi">
+<head>
+    <!-- Meta charset: Định nghĩa bảng mã ký tự UTF-8 để hỗ trợ tiếng Việt -->
+    <meta charset="UTF-8">
+    
+    <!-- Meta viewport: Thiết lập viewport cho responsive design trên mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Tiêu đề trang hiển thị trên tab trình duyệt -->
+    <title>Quản Trị Viên - Hệ Thống Quản Lý Trạm Sạc Xe Điện</title>
+    
+    <!-- Stylesheet cơ bản: File CSS chứa các style chung (reset, variables, layout, buttons, modal, form) -->
+    <link rel="stylesheet" href="assets/css/base.css">
+    
+    <!-- Stylesheet dashboard: File CSS cho trang Dashboard -->
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    
+    <!-- Stylesheet trạm sạc: File CSS cho trang quản lý Trạm Sạc -->
+    <link rel="stylesheet" href="assets/css/tramsac.css">
+    
+    <!-- Stylesheet cột sạc: File CSS cho trang quản lý Cột Sạc -->
+    <link rel="stylesheet" href="assets/css/cotsac.css">
+    
+    <!-- Stylesheet khách hàng: File CSS cho trang quản lý Khách Hàng -->
+    <link rel="stylesheet" href="assets/css/khachhang.css">
+    
+    <!-- Stylesheet phương tiện: File CSS cho trang quản lý Phương Tiện -->
+    <link rel="stylesheet" href="assets/css/phuongtien.css">
+    
+    <!-- Stylesheet phiên sạc: File CSS cho trang quản lý Phiên Sạc -->
+    <link rel="stylesheet" href="assets/css/phiensac.css">
+    
+    <!-- Stylesheet hóa đơn: File CSS cho trang quản lý Hóa Đơn -->
+    <link rel="stylesheet" href="assets/css/hoadon.css">
+    
+    <!-- Stylesheet thanh toán: File CSS cho trang quản lý Thanh Toán -->
+    <link rel="stylesheet" href="assets/css/thanhtoan.css">
+    
+    <!-- Stylesheet giá sạc: File CSS cho trang quản lý Giá Sạc (chỉ admin) -->
+    <link rel="stylesheet" href="assets/css/giasac.css">
+    
+    <!-- Stylesheet duyệt nhân viên: File CSS cho trang Duyệt Nhân Viên (chỉ admin) -->
+    <link rel="stylesheet" href="assets/css/approve.css">
+    
+    <!-- Stylesheet quản lý nhân viên: File CSS cho trang Quản Lý Nhân Viên -->
+    <link rel="stylesheet" href="assets/css/nhanvien.css">
+    
+    <!-- Stylesheet quản lý bảo trì: File CSS cho trang Quản Lý Bảo Trì -->
+    <link rel="stylesheet" href="assets/css/baotri.css">
+    
+    <!-- Stylesheet index: File CSS cho trang index.html -->
+    <link rel="stylesheet" href="assets/css/index.css">
+    
+    <!-- Font Awesome Icons: Thư viện icon từ CDN, cung cấp các icon như home, building, plug, etc. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- KHÔNG CÒN META REFRESH - Đã xóa để tránh reload tự động -->
+    <!-- Meta refresh đã được loại bỏ hoàn toàn vì gây reload không mong muốn -->
+</head>
+<body>
+    <!-- ============================================
+         SIDEBAR MENU - Menu điều hướng bên trái
+         ============================================ -->
+    <!-- 
+        aside: Phần tử HTML5 dùng cho nội dung phụ, ở đây là menu sidebar
+        class="sidebar": Class CSS để style cho sidebar
+        id="sidebar": ID để JavaScript có thể truy cập và điều khiển
+    -->
+    <aside class="sidebar" id="sidebar">
+        <!-- Header của sidebar: Phần đầu sidebar chứa logo/tên hệ thống -->
+        <div class="sidebar-header">
+            <!-- 
+                h2: Thẻ heading cấp 2
+                i class="fas fa-charging-station": Icon trạm sạc từ Font Awesome
+            -->
+            <h2><i class="fas fa-charging-station"></i> Quản Lý Trạm Sạc</h2>
+        </div>
+        
+        <!-- Navigation menu: Danh sách các menu item để điều hướng -->
+        <nav class="sidebar-nav">
+            <!-- 
+                Dashboard menu item
+                href="#": Link không điều hướng, chỉ dùng để trigger JavaScript
+                class="nav-item active": Class nav-item để style, active để đánh dấu item đang được chọn
+                data-page="dashboard": Attribute để JavaScript biết trang nào cần hiển thị
+            -->
+            <a href="#" class="nav-item active" data-page="dashboard">
+                <i class="fas fa-home"></i> <span>Dashboard</span>
+            </a>
+            
+            <!-- Trạm Sạc menu item -->
+            <a href="#" class="nav-item" data-page="tramsac">
+                <i class="fas fa-building"></i> <span>Trạm Sạc</span>
+            </a>
+            
+            <!-- Cột Sạc menu item -->
+            <a href="#" class="nav-item" data-page="cotsac">
+                <i class="fas fa-plug"></i> <span>Cột Sạc</span>
+            </a>
+            
+            <!-- Khách Hàng menu item -->
+            <a href="#" class="nav-item" data-page="khachhang">
+                <i class="fas fa-users"></i> <span>Khách Hàng</span>
+            </a>
+            
+            <!-- Phương Tiện menu item -->
+            <a href="#" class="nav-item" data-page="phuongtien">
+                <i class="fas fa-car"></i> <span>Phương Tiện</span>
+            </a>
+            
+            <!-- Phiên Sạc menu item -->
+            <a href="#" class="nav-item" data-page="phiensac">
+                <i class="fas fa-bolt"></i> <span>Phiên Sạc</span>
+            </a>
+            
+            <!-- Hóa Đơn menu item -->
+            <a href="#" class="nav-item" data-page="hoadon">
+                <i class="fas fa-file-invoice"></i> <span>Hóa Đơn</span>
+            </a>
+            
+            <!-- Thanh Toán menu item -->
+            <a href="#" class="nav-item" data-page="thanhtoan">
+                <i class="fas fa-money-bill-wave"></i> <span>Thanh Toán</span>
+            </a>
+            
+            <!-- Giá Sạc menu item (CHỈ ADMIN) - LUÔN HIỂN THỊ trên trang admin.html -->
+            <a href="#" class="nav-item" data-page="giasac" id="menu-giasac">
+                <i class="fas fa-dollar-sign"></i> <span>Giá Sạc</span>
+            </a>
+            
+            <!-- Duyệt Nhân Viên menu item (CHỈ ADMIN) - LUÔN HIỂN THỊ trên trang admin.html -->
+            <a href="#" class="nav-item" data-page="approve" id="menu-approve">
+                <i class="fas fa-user-check"></i> <span>Duyệt Nhân Viên</span>
+            </a>
+            
+            <!-- Nhân Viên menu item -->
+            <a href="#" class="nav-item" data-page="nhanvien">
+                <i class="fas fa-user-tie"></i> <span>Nhân Viên</span>
+            </a>
+            
+            <!-- Bảo Trì menu item -->
+            <a href="#" class="nav-item" data-page="baotri">
+                <i class="fas fa-tools"></i> <span>Bảo Trì</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ============================================
+         MAIN CONTENT - Nội dung chính của trang
+         ============================================ -->
+    <!-- 
+        main: Phần tử HTML5 dùng cho nội dung chính của trang
+        class="main-content": Class CSS để style cho phần nội dung chính
+    -->
+    <main class="main-content">
+        <!-- Header của main content: Phần đầu chứa menu toggle và tiêu đề -->
+        <header class="main-header">
+            <!-- 
+                Menu toggle button: Nút để mở/đóng sidebar trên mobile
+                class="menu-toggle": Class CSS để style nút
+                id="menuToggle": ID để JavaScript có thể bắt sự kiện click
+            -->
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- 
+                Tiêu đề trang: Hiển thị tên module hiện tại
+                id="pageTitle": ID để JavaScript có thể cập nhật tiêu đề khi chuyển trang
+            -->
+            <!-- Thông tin user và nút đăng xuất -->
+            <!-- QUAN TRỌNG: user-info phải được đặt SAU h1 để hiển thị bên phải header -->
+            <h1 id="pageTitle">Dashboard</h1>
+            <div class="user-info" id="user-info">
+                <span class="user-name" id="user-name"></span>
+                <span class="user-role" id="user-role"></span>
+            </div>
+            <button class="btn-logout btn btn-secondary btn-sm" onclick="logout()" title="Đăng xuất">
+                <i class="fas fa-sign-out-alt"></i> Đăng xuất
+            </button>
+        </header>
+
+        <!-- Page Content: Container chứa nội dung của các trang -->
+        <div class="page-content" id="pageContent">
+            <!-- ============================================
+                 DASHBOARD PAGE - Trang tổng quan
+                 ============================================ -->
+            <!-- 
+                div id="dashboard": Container cho trang Dashboard
+                class="page active": Class page để style chung, active để hiển thị trang này
+            -->
+            <div id="dashboard" class="page active">
+                <!-- Statistics Section: Phần hiển thị thống kê tổng quan -->
+                <section class="stats-section">
+                    <!-- 
+                        stats-grid: Grid layout để hiển thị các card thống kê
+                        Sử dụng CSS Grid để tự động điều chỉnh số cột theo kích thước màn hình
+                    -->
+                    <div class="stats-grid">
+                        <!-- Card thống kê: Tổng số trạm -->
+                        <!-- 
+                            stat-card: Card chứa một chỉ số thống kê
+                            Mỗi card có icon màu sắc, số liệu và nhãn mô tả
+                        -->
+                        <div class="stat-card">
+                            <!-- 
+                                stat-icon blue: Icon với màu xanh dương
+                                Hiển thị icon building để đại diện cho trạm sạc
+                            -->
+                            <div class="stat-icon blue">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <!-- 
+                                stat-info: Phần thông tin số liệu
+                                h3 id="total-trams": Số liệu sẽ được JavaScript cập nhật động
+                                p: Nhãn mô tả cho số liệu
+                            -->
+                            <div class="stat-info">
+                                <h3 id="total-trams">0</h3>
+                                <p>Tổng Số Trạm</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Tổng số cột sạc -->
+                        <div class="stat-card">
+                            <!-- Icon màu xanh lá cho cột sạc -->
+                            <div class="stat-icon green">
+                                <i class="fas fa-plug"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-cots">0</h3>
+                                <p>Tổng Số Cột</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Cột sạc đang sử dụng -->
+                        <!-- Hiển thị số cột đang trong trạng thái "Đang sạc" -->
+                        <div class="stat-card">
+                            <div class="stat-icon red">
+                                <i class="fas fa-charging-station"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="cots-dang-sac">0</h3>
+                                <p>Cột Đang Sạc</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Tổng khách hàng -->
+                        <div class="stat-card">
+                            <div class="stat-icon orange">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-kh">0</h3>
+                                <p>Tổng Khách Hàng</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Tổng phương tiện -->
+                        <!-- Hiển thị tổng số phương tiện đã đăng ký -->
+                        <div class="stat-card">
+                            <div class="stat-icon teal">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-phuongtien">0</h3>
+                                <p>Tổng Phương Tiện</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Phiên sạc hôm nay -->
+                        <div class="stat-card">
+                            <div class="stat-icon purple">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-phien">0</h3>
+                                <p>Phiên Sạc Hôm Nay</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Phiên sạc đang diễn ra -->
+                        <!-- Hiển thị số phiên sạc chưa kết thúc (ThoiGianKetThuc = NULL) -->
+                        <div class="stat-card">
+                            <div class="stat-icon yellow">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="phien-dang-dien-ra">0</h3>
+                                <p>Phiên Đang Diễn Ra</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Tổng hóa đơn -->
+                        <div class="stat-card">
+                            <div class="stat-icon indigo">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-hoadon">0</h3>
+                                <p>Tổng Hóa Đơn</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Doanh thu hôm nay -->
+                        <!-- Tính tổng tiền từ các hóa đơn được tạo hôm nay -->
+                        <div class="stat-card">
+                            <div class="stat-icon pink">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="doanh-thu-hom-nay">0</h3>
+                                <p>Doanh Thu Hôm Nay (VNĐ)</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Tổng doanh thu -->
+                        <!-- Tính tổng tiền từ tất cả hóa đơn -->
+                        <div class="stat-card">
+                            <div class="stat-icon cyan">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="tong-doanh-thu">0</h3>
+                                <p>Tổng Doanh Thu (VNĐ)</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Tổng nhân viên -->
+                        <div class="stat-card">
+                            <div class="stat-icon dark-blue">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-nhanvien">0</h3>
+                                <p>Tổng Nhân Viên</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Bảo trì đang thực hiện -->
+                        <!-- Hiển thị số bảo trì có trạng thái "Đang thực hiện" -->
+                        <div class="stat-card">
+                            <div class="stat-icon dark-orange">
+                                <i class="fas fa-tools"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="baotri-dang-thuc-hien">0</h3>
+                                <p>Bảo Trì Đang Thực Hiện</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recent Activities Section: Phần hiển thị hoạt động gần đây -->
+                <section class="recent-section">
+                    <!-- Tiêu đề section -->
+                    <h2>Hoạt Động Gần Đây</h2>
+                    <!-- 
+                        activities-list: Container chứa danh sách hoạt động
+                        id="recentActivities": ID để JavaScript có thể cập nhật nội dung động
+                    -->
+                    <div id="recentActivities" class="activities-list">
+                        <!-- Nội dung sẽ được JavaScript load động từ API -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- ============================================
+                 OTHER PAGES - Các trang module khác
+                 ============================================ -->
+            <!-- 
+                Các div sau đây là container cho các trang module khác
+                Ban đầu chúng rỗng, nội dung sẽ được JavaScript load động khi người dùng click vào menu
+                class="page": Class chung để style, không có active nên sẽ ẩn
+            -->
+            
+            <!-- Trang quản lý Trạm Sạc -->
+            <div id="tramsac" class="page"></div>
+            
+            <!-- Trang quản lý Cột Sạc -->
+            <div id="cotsac" class="page"></div>
+            
+            <!-- Trang quản lý Khách Hàng -->
+            <div id="khachhang" class="page"></div>
+            
+            <!-- Trang quản lý Phương Tiện -->
+            <div id="phuongtien" class="page"></div>
+            
+            <!-- Trang quản lý Phiên Sạc -->
+            <div id="phiensac" class="page"></div>
+            
+            <!-- Trang quản lý Hóa Đơn -->
+            <div id="hoadon" class="page"></div>
+            
+            <!-- Trang quản lý Thanh Toán -->
+            <div id="thanhtoan" class="page"></div>
+            
+            <!-- Trang quản lý Nhân Viên -->
+            <div id="nhanvien" class="page"></div>
+            
+            <!-- Trang quản lý Bảo Trì -->
+            <div id="baotri" class="page"></div>
+            
+            <!-- Trang quản lý Giá Sạc (CHỈ ADMIN) -->
+            <div id="giasac" class="page"></div>
+            
+            <!-- Trang duyệt nhân viên (CHỈ ADMIN) -->
+            <div id="approve" class="page"></div>
+        </div>
+    </main>
+
+    <!-- ============================================
+         LOADING OVERLAY - Overlay hiển thị khi đang tải dữ liệu
+         ============================================ -->
+    <!-- 
+        loading-overlay: Overlay che toàn bộ màn hình khi đang load
+        id="loading": ID để JavaScript có thể show/hide
+        Ban đầu ẩn, sẽ hiện khi có request API
+    -->
+    <div id="loading" class="loading-overlay">
+        <!-- 
+            spinner: Icon loading xoay tròn
+            Sử dụng CSS animation để tạo hiệu ứng xoay
+        -->
+        <div class="spinner"></div>
+    </div>
+
+    <!-- ============================================
+         JAVASCRIPT FILES - Các file JavaScript
+         ============================================ -->
+    <!-- 
+        Thứ tự load các file JavaScript rất quan trọng:
+        1. core.js: Chứa các hàm tiện ích chung (escapeHtml, showLoading, hideLoading, API_BASE)
+        2. dashboard.js: Module quản lý trang Dashboard
+        3. tramsac.js: Module quản lý trang Trạm Sạc
+        4. cotsac.js: Module quản lý trang Cột Sạc
+        5. khachhang.js: Module quản lý trang Khách Hàng
+        6. main.js: File chính quản lý navigation và load các module
+    -->
+    <!-- Core utilities: Các hàm tiện ích chung -->
+    <script src="assets/js/core.js"></script>
+    
+    <!-- Authentication module: Xử lý đăng nhập, đăng xuất, kiểm tra quyền -->
+    <script src="assets/js/auth.js"></script>
+    
+    <!-- Dashboard module: Module quản lý trang Dashboard -->
+    <script src="assets/js/dashboard.js"></script>
+    
+    <!-- Trạm Sạc module: Module quản lý trang Trạm Sạc -->
+    <script src="assets/js/tramsac.js"></script>
+    
+    <!-- Cột Sạc module: Module quản lý trang Cột Sạc -->
+    <script src="assets/js/cotsac.js"></script>
+    
+    <!-- Khách Hàng module: Module quản lý trang Khách Hàng -->
+    <script src="assets/js/khachhang.js"></script>
+    
+    <!-- Phương Tiện module: Module quản lý trang Phương Tiện -->
+    <script src="assets/js/phuongtien.js"></script>
+    
+    <!-- Phiên Sạc module: Module quản lý trang Phiên Sạc -->
+    <script src="assets/js/phiensac.js"></script>
+    
+    <!-- Hóa Đơn module: Module quản lý trang Hóa Đơn -->
+    <script src="assets/js/hoadon.js"></script>
+    
+    <!-- Thanh Toán module: Module quản lý trang Thanh Toán -->
+    <script src="assets/js/thanhtoan.js"></script>
+    
+    <!-- Giá Sạc module: Module quản lý trang Giá Sạc (chỉ admin) -->
+    <script src="assets/js/giasac.js"></script>
+    
+    <!-- Duyệt Nhân Viên module: Module quản lý trang Duyệt Nhân Viên (chỉ admin) -->
+    <script src="assets/js/approve.js"></script>
+    
+    <!-- Quản Lý Nhân Viên module: Module quản lý trang Quản Lý Nhân Viên -->
+    <script src="assets/js/nhanvien.js"></script>
+    
+    <!-- Bảo Trì module: Module quản lý trang Quản Lý Bảo Trì -->
+    <script src="assets/js/baotri.js"></script>
+    
+    <!-- Main application: File chính quản lý navigation và load các module -->
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
+

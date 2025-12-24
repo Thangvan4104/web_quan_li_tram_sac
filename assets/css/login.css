@@ -1,0 +1,302 @@
+/**
+ * File: assets/css/login.css
+ * Mô tả: File CSS cho trang đăng nhập
+ * Chức năng: Định nghĩa style cho trang đăng nhập
+ *   - Container và card đăng nhập
+ *   - Form đăng nhập với các input
+ *   - Nút đăng nhập và các hiệu ứng
+ *   - Responsive design
+ * Tác giả: Hệ thống quản lý trạm sạc
+ */
+
+/* ============================================
+   OVERRIDE BODY STYLE CHO TRANG LOGIN
+   ============================================ */
+
+/* Override style body từ base.css cho trang login */
+/* Trang login không cần flexbox layout như index.html */
+/* QUAN TRỌNG: Phải override mạnh mẽ để không bị ảnh hưởng bởi base.css */
+html.login-page,
+html.login-page body {
+    display: block !important;  /* Override display: flex từ base.css */
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    background: linear-gradient(135deg, #2563eb 0%, #4a90e2 100%) !important;
+}
+
+body {
+    display: block !important;  /* Override display: flex từ base.css */
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    background: linear-gradient(135deg, #2563eb 0%, #4a90e2 100%) !important;
+}
+
+/* Đảm bảo body không có class auth-checking trên trang login */
+body.auth-checking {
+    display: block !important;
+}
+
+/* Ẩn loading overlay từ index.css nếu có */
+body.auth-checking::before {
+    display: none !important;
+    content: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Đảm bảo html cũng có style đúng */
+html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow-x: hidden;
+}
+
+/* ============================================
+   LOGIN CONTAINER
+   ============================================ */
+
+/* Container chính của trang đăng nhập */
+.login-container {
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height cho mobile */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #4a90e2 100%);
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+}
+
+/* ============================================
+   LOGIN CARD
+   ============================================ */
+
+/* Card đăng nhập */
+.login-card {
+    background: var(--card-bg);
+    background: #ffffff; /* Đảm bảo màu trắng */
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 450px;
+    padding: 40px;
+    animation: slideUp 0.5s ease-out;
+    position: relative;
+    z-index: 2;
+    box-sizing: border-box;
+}
+
+/* Animation slide up khi load trang */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   LOGIN HEADER
+   ============================================ */
+
+/* Header của card đăng nhập */
+.login-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+/* Icon sạc điện */
+.login-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--primary-color), #4a90e2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 36px;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+/* Tiêu đề */
+.login-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+/* Mô tả */
+.login-header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* ============================================
+   LOGIN FORM
+   ============================================ */
+
+/* Form đăng nhập */
+.login-form {
+    margin-bottom: 24px;
+}
+
+/* Form group */
+.login-form .form-group {
+    margin-bottom: 20px;
+}
+
+/* Label trong form */
+.login-form label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+/* Icon trong label */
+.login-form label i {
+    color: var(--primary-color);
+    width: 16px;
+}
+
+/* Input trong form */
+.login-form input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+/* Focus state cho input */
+.login-form input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* Password input wrapper */
+.password-input-wrapper {
+    position: relative;
+}
+
+/* Nút toggle password */
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.3s ease;
+}
+
+/* Hover state cho toggle password */
+.toggle-password:hover {
+    color: var(--primary-color);
+}
+
+/* ============================================
+   BUTTON
+   ============================================ */
+
+/* Nút đăng nhập full width */
+.btn-block {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+/* ============================================
+   ERROR MESSAGE
+   ============================================ */
+
+/* Thông báo lỗi */
+.error-message {
+    background-color: #fee2e2;
+    color: #991b1b;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    border: 1px solid #fecaca;
+}
+
+/* Icon trong error message */
+.error-message i {
+    font-size: 16px;
+}
+
+/* ============================================
+   LOGIN FOOTER
+   ============================================ */
+
+/* Footer của card */
+.login-footer {
+    text-align: center;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Text trong footer */
+.login-footer p {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Media query cho màn hình nhỏ hơn 768px */
+@media (max-width: 768px) {
+    /* Giảm padding của card */
+    .login-card {
+        padding: 30px 24px;
+    }
+    
+    /* Giảm kích thước icon */
+    .login-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+    
+    /* Giảm kích thước tiêu đề */
+    .login-header h1 {
+        font-size: 24px;
+    }
+}
+

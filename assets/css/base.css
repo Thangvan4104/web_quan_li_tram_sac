@@ -1,7 +1,15 @@
 /**
- * File: assets/css/style.css
- * Mô tả: File stylesheet chính cho hệ thống quản lý trạm sạc
- * Chức năng: Định nghĩa tất cả các style, layout, và responsive design
+ * File: assets/css/base.css
+ * Mô tả: File CSS cơ bản chứa các style chung cho toàn bộ hệ thống
+ * Chức năng: 
+ *   - Reset CSS và cấu hình cơ bản
+ *   - Biến CSS (CSS Variables)
+ *   - Layout chung (sidebar, main content)
+ *   - Buttons, Modal, Form
+ *   - Loading overlay, Animations
+ *   - Empty state, Error message
+ *   - Responsive design
+ * Tác giả: Hệ thống quản lý trạm sạc
  */
 
 /* ============================================
@@ -45,6 +53,8 @@ body {
     background-color: var(--bg-color);
     color: var(--text-primary);
     line-height: 1.6;  /* Khoảng cách giữa các dòng */
+    display: flex;     /* Flexbox layout cho sidebar */
+    min-height: 100vh; /* Chiều cao tối thiểu bằng viewport */
 }
 
 /* Container chính - giới hạn chiều rộng và căn giữa */
@@ -149,280 +159,6 @@ body {
 }
 
 /* ============================================
-   STATISTICS SECTION
-   ============================================ */
-
-/* Section thống kê */
-.stats-section {
-    margin-bottom: 30px;  /* Khoảng cách phía dưới */
-}
-
-/* Grid layout cho các card thống kê */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));  /* Tự động điều chỉnh số cột */
-    gap: 20px;  /* Khoảng cách giữa các card */
-}
-
-/* Card thống kê */
-.stat-card {
-    background: var(--card-bg);
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;  /* Hiệu ứng khi hover */
-}
-
-/* Hover effect cho card thống kê */
-.stat-card:hover {
-    transform: translateY(-4px);  /* Di chuyển lên trên */
-    box-shadow: var(--shadow-lg);
-}
-
-/* Icon trong card thống kê */
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: white;
-}
-
-/* Icon màu xanh dương */
-.stat-icon.blue {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-}
-
-/* Icon màu xanh lá */
-.stat-icon.green {
-    background: linear-gradient(135deg, #10b981, #059669);
-}
-
-/* Icon màu cam */
-.stat-icon.orange {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-}
-
-/* Icon màu tím */
-.stat-icon.purple {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-}
-
-/* Số liệu trong card thống kê */
-.stat-info h3 {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-}
-
-/* Nhãn trong card thống kê */
-.stat-info p {
-    color: var(--text-secondary);
-    font-size: 14px;
-}
-
-/* ============================================
-   STATIONS SECTION
-   ============================================ */
-
-/* Section danh sách trạm sạc */
-.stations-section {
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-}
-
-/* Header của section */
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-/* Tiêu đề section */
-.section-header h2 {
-    font-size: 24px;
-    font-weight: 600;
-}
-
-/* Ô tìm kiếm */
-.search-box {
-    position: relative;  /* Để đặt icon bên trong */
-    display: flex;
-    align-items: center;
-}
-
-/* Icon tìm kiếm */
-.search-box i {
-    position: absolute;
-    left: 12px;
-    color: var(--text-secondary);
-}
-
-/* Input tìm kiếm */
-.search-box input {
-    padding: 10px 12px 10px 40px;  /* Padding trái lớn hơn để chừa chỗ cho icon */
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 14px;
-    width: 300px;
-    transition: border-color 0.3s ease;
-}
-
-/* Focus state cho input */
-.search-box input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-/* ============================================
-   STATIONS GRID
-   ============================================ */
-
-/* Grid layout cho danh sách trạm sạc */
-.stations-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));  /* Tự động điều chỉnh số cột */
-    gap: 24px;
-}
-
-/* Card trạm sạc */
-.station-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 24px;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-/* Hover effect cho card trạm sạc */
-.station-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
-}
-
-/* Header của card trạm sạc */
-.station-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    margin-bottom: 16px;
-}
-
-/* Tên trạm sạc */
-.station-name {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-}
-
-/* Badge trạng thái */
-.status-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: uppercase;  /* Chữ in hoa */
-}
-
-/* Badge trạng thái: Đang hoạt động */
-.status-badge.active {
-    background-color: #d1fae5;
-    color: #065f46;
-}
-
-/* Badge trạng thái: Bảo trì */
-.status-badge.maintenance {
-    background-color: #fef3c7;
-    color: #92400e;
-}
-
-/* Badge trạng thái: Ngừng hoạt động */
-.status-badge.inactive {
-    background-color: #fee2e2;
-    color: #991b1b;
-}
-
-/* Thông tin trạm sạc */
-.station-info {
-    margin-bottom: 16px;
-}
-
-/* Mỗi item thông tin */
-.station-info-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    color: var(--text-secondary);
-    font-size: 14px;
-}
-
-/* Icon trong item thông tin */
-.station-info-item i {
-    width: 16px;
-    color: var(--primary-color);
-}
-
-/* Thống kê cổng sạc */
-.station-stats {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 16px;
-    padding: 16px;
-    background: var(--bg-color);
-    border-radius: 8px;
-}
-
-/* Mỗi item thống kê */
-.stat-item {
-    flex: 1;  /* Chia đều không gian */
-    text-align: center;
-}
-
-/* Giá trị thống kê */
-.stat-item-value {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-primary);
-}
-
-/* Nhãn thống kê */
-.stat-item-label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-top: 4px;
-}
-
-/* Các nút hành động trong card */
-.station-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border-color);
-}
-
-/* Button trong actions */
-.station-actions .btn {
-    flex: 1;  /* Chia đều không gian */
-    justify-content: center;
-}
-
-/* ============================================
    MODAL
    ============================================ */
 
@@ -446,6 +182,17 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
+}
+
+/* Đóng modal khi click vào overlay (ngoài modal-content) */
+.modal.show::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
 }
 
 /* Nội dung modal */
@@ -488,6 +235,10 @@ body {
 .close:hover {
     color: var(--text-primary);
 }
+
+/* ============================================
+   FORM
+   ============================================ */
 
 /* Form trong modal */
 form {
@@ -560,6 +311,31 @@ textarea {
     border-top: 1px solid var(--border-color);
 }
 
+/* Hint text dưới input */
+.form-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Input readonly */
+input[readonly] {
+    background-color: var(--bg-color);
+    cursor: not-allowed;
+}
+
+/* Input pattern invalid */
+input:invalid {
+    border-color: var(--danger-color);
+}
+
+/* Input pattern valid */
+input:valid {
+    border-color: var(--success-color);
+}
+
 /* ============================================
    LOADING OVERLAY
    ============================================ */
@@ -630,6 +406,7 @@ textarea {
     text-align: center;
     padding: 60px 20px;
     color: var(--text-secondary);
+    grid-column: 1 / -1;  /* Chiếm toàn bộ cột trong grid */
 }
 
 /* Icon trong empty state */
@@ -646,25 +423,224 @@ textarea {
 }
 
 /* ============================================
+   ERROR MESSAGE
+   ============================================ */
+
+/* Container thông báo lỗi */
+.error-message {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+/* Icon trong error message */
+.error-message i {
+    font-size: 64px;
+    color: var(--danger-color);
+    margin-bottom: 16px;
+}
+
+/* Tiêu đề trong error message */
+.error-message h3 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+/* ============================================
+   SIDEBAR LAYOUT
+   ============================================ */
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: var(--card-bg);
+    border-right: 1px solid var(--border-color);
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.sidebar-header {
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+    color: white;
+}
+
+.sidebar-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.sidebar-header i {
+    margin-right: 8px;
+}
+
+.sidebar-nav {
+    padding: 10px 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.nav-item i {
+    width: 20px;
+    margin-right: 12px;
+    color: var(--text-secondary);
+}
+
+.nav-item:hover {
+    background: var(--bg-color);
+    border-left-color: var(--primary-color);
+}
+
+.nav-item.active {
+    background: rgba(37, 99, 235, 0.1);
+    border-left-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.nav-item.active i {
+    color: var(--primary-color);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    margin-left: 260px;
+    min-height: 100vh;
+    background: var(--bg-color);
+}
+
+.main-header {
+    background: var(--card-bg);
+    padding: 20px 30px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 8px;
+    flex-shrink: 0;
+}
+
+.main-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    flex: 1;
+    margin: 0;
+    min-width: 0;
+}
+
+/* Thông tin user trong header */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.user-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.user-role {
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Nút đăng xuất - đảm bảo ở vị trí ngoài cùng bên phải của header */
+.main-header > .btn-logout {
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-right: 0;
+    order: 999;
+}
+
+.admin-badge {
+    background-color: #dbeafe;
+    color: #1e40af;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.staff-badge {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.page-content {
+    padding: 30px;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* ============================================
    RESPONSIVE DESIGN
    ============================================ */
 
 /* Media query cho màn hình nhỏ hơn 768px */
 @media (max-width: 768px) {
+    /* Sidebar ẩn trên mobile */
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    /* Main content full width trên mobile */
+    .main-content {
+        margin-left: 0;
+    }
+    
+    /* Hiển thị menu toggle */
+    .menu-toggle {
+        display: block;
+    }
+    
     /* Header content thành cột */
     .header-content {
         flex-direction: column;
         align-items: flex-start;
-    }
-    
-    /* Stats grid thành 1 cột */
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    /* Stations grid thành 1 cột */
-    .stations-grid {
-        grid-template-columns: 1fr;
     }
     
     /* Form row thành 1 cột */
@@ -672,14 +648,15 @@ textarea {
         grid-template-columns: 1fr;
     }
     
-    /* Search box full width */
-    .search-box input {
-        width: 100%;
+    /* Page content padding nhỏ hơn */
+    .page-content {
+        padding: 15px;
     }
     
-    /* Section header thành cột */
-    .section-header {
-        flex-direction: column;
-        align-items: stretch;
+    /* Modal content full width trên mobile */
+    .modal-content {
+        max-width: 100%;
+        margin: 10px;
     }
 }
+

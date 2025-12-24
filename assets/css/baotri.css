@@ -1,0 +1,506 @@
+/**
+ * File: assets/css/baotri.css
+ * Mô tả: File CSS cho trang quản lý Bảo Trì
+ * 
+ * Tác giả: Hệ thống quản lý trạm sạc
+ * 
+ * Chức năng: Định nghĩa style cho các phần tử của trang bảo trì
+ *   - Section header và nút "Tạo Bảo Trì Mới"
+ *   - Results info (số lượng phiếu bảo trì)
+ *   - Grid và cards phiếu bảo trì (baotri-grid, baotri-card)
+ *   - Status badges (Hoàn tất, Đang thực hiện)
+ *   - Actions buttons (Sửa, Xóa - chỉ admin)
+ *   - Modal forms (Tạo/Sửa phiếu bảo trì)
+ *   - Radio buttons cho loại bảo trì
+ *   - Responsive design cho mobile
+ */
+
+/* ============================================
+   SECTION HEADER
+   ============================================ */
+
+/* Header của section: Chứa tiêu đề và nút "Tạo Bảo Trì Mới" */
+.section-header {
+    display: flex;
+    justify-content: space-between;  /* Tiêu đề bên trái, nút bên phải */
+    align-items: center;  /* Căn giữa theo chiều dọc */
+    margin-bottom: 24px;
+    flex-wrap: wrap;  /* Cho phép xuống dòng trên màn hình nhỏ */
+    gap: 20px;  /* Khoảng cách giữa các phần tử */
+}
+
+/* Tiêu đề section */
+.section-header h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* ============================================
+   RESULTS INFO
+   ============================================ */
+
+/* Thông tin số lượng phiếu bảo trì hiển thị */
+.results-info {
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Text strong trong results-info */
+.results-info strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* ============================================
+   BẢO TRÌ GRID (Lưới cards phiếu bảo trì)
+   ============================================ */
+
+/* Grid layout cho danh sách phiếu bảo trì */
+.baotri-grid {
+    display: grid;
+    /* auto-fill: Tự động tạo số cột vừa với màn hình */
+    /* minmax(350px, 1fr): Mỗi cột tối thiểu 350px, tối đa chia đều không gian */
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;  /* Khoảng cách giữa các cards */
+}
+
+/* ============================================
+   BẢO TRÌ CARD (Card phiếu bảo trì)
+   ============================================ */
+
+/* Card phiếu bảo trì: Container chứa thông tin một phiếu bảo trì */
+.baotri-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.3s ease;  /* Hiệu ứng mượt khi hover */
+    position: relative;
+}
+
+/* Hover effect: Nâng card lên và thêm shadow */
+.baotri-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);  /* Nâng lên 2px */
+}
+
+/* Header của card: Chứa mã phiếu, tên trạm và badge trạng thái */
+.baotri-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;  /* Căn theo đầu */
+    margin-bottom: 16px;
+}
+
+/* Mã phiếu bảo trì (nhỏ, màu xám, font monospace) */
+.baotri-code {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-family: 'Courier New', monospace;  /* Font monospace để dễ đọc mã */
+}
+
+/* Tên trạm sạc */
+.baotri-tram {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+/* ============================================
+   STATUS BADGES (Badge trạng thái)
+   ============================================ */
+
+/* Badge trạng thái (Hoàn tất / Đang thực hiện) */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;  /* Không xuống dòng */
+}
+
+/* Badge: Hoàn tất (màu xanh) */
+.status-badge.approved {
+    background-color: #d1fae5;  /* Xanh lá nhạt */
+    color: #065f46;  /* Xanh lá đậm */
+}
+
+/* Badge: Đang thực hiện / Pending (màu vàng) */
+.status-badge.pending {
+    background-color: #fef3c7;  /* Vàng nhạt */
+    color: #92400e;  /* Vàng đậm */
+}
+
+/* ============================================
+   BẢO TRÌ INFO (Thông tin chi tiết)
+   ============================================ */
+
+/* Container chứa thông tin chi tiết phiếu bảo trì */
+.baotri-info {
+    margin-bottom: 16px;
+}
+
+/* Mỗi item thông tin (ngày, nhân viên, loại bảo trì, nội dung) */
+.baotri-info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;  /* Khoảng cách giữa icon và text */
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Icon trong item thông tin (Font Awesome) */
+.baotri-info-item i {
+    width: 16px;  /* Cố định chiều rộng để icon thẳng hàng */
+    color: var(--primary-color);
+    text-align: center;
+}
+
+/* ============================================
+   BẢO TRÌ ACTIONS (Các nút hành động)
+   ============================================ */
+
+/* Container chứa các nút Sửa và Xóa */
+.baotri-actions {
+    display: flex;
+    gap: 8px;  /* Khoảng cách giữa các nút */
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);  /* Đường kẻ ngăn cách */
+}
+
+/* Button trong actions: Sửa và Xóa */
+.baotri-actions .btn {
+    flex: 1;  /* Chia đều không gian (mỗi nút chiếm 50%) */
+    justify-content: center;  /* Căn giữa nội dung */
+}
+
+/* ============================================
+   MODAL STYLES (Modal tạo/sửa phiếu bảo trì)
+   ============================================ */
+
+/* Modal overlay (lớp phủ nền) */
+.modal {
+    display: none;  /* Ẩn mặc định */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);  /* Nền đen mờ */
+    z-index: 1000;  /* Hiển thị trên tất cả */
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Hiển thị modal khi có class 'show' */
+.modal.show {
+    display: flex;
+}
+
+/* Nội dung modal (form) */
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;  /* Chiều cao tối đa 90% viewport */
+    overflow-y: auto;  /* Cho phép scroll nếu nội dung dài */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    animation: modalSlideIn 0.3s ease;  /* Hiệu ứng xuất hiện */
+}
+
+/* Animation cho modal xuất hiện */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Header của modal */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Tiêu đề modal */
+.modal-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Nút đóng modal (X) */
+.modal-header .close {
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--text-secondary);
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+/* Hover effect cho nút đóng */
+.modal-header .close:hover {
+    color: var(--text-primary);
+}
+
+/* Form trong modal */
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Form group: Mỗi nhóm chứa label và input/select */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Label trong form */
+.form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Dấu * bắt buộc (màu đỏ) */
+.required {
+    color: #ef4444;
+    margin-left: 4px;
+}
+
+/* Input trong form */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+    font-family: inherit;
+}
+
+/* Textarea trong form */
+.form-group textarea {
+    resize: vertical;  /* Cho phép resize theo chiều dọc */
+    min-height: 80px;
+}
+
+/* Focus state cho input/select/textarea */
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Form hint (gợi ý nhỏ dưới input) */
+.form-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: -4px;
+    font-style: italic;
+}
+
+/* ============================================
+   RADIO GROUP (Loại bảo trì)
+   ============================================ */
+
+/* Container chứa các radio buttons */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+/* Label cho radio button */
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: normal;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+/* Hover effect cho radio label */
+.radio-group label:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Radio input */
+.radio-group input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--primary-color);  /* Màu khi checked */
+}
+
+/* ============================================
+   FORM ACTIONS (Nút Hủy và Lưu)
+   ============================================ */
+
+/* Actions của form (nút Hủy và Lưu) */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;  /* Căn bên phải */
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* ============================================
+   EMPTY STATE (Trạng thái rỗng)
+   ============================================ */
+
+/* Container hiển thị khi không có dữ liệu */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+    grid-column: 1 / -1;  /* Chiếm toàn bộ chiều rộng grid */
+}
+
+/* Icon trong empty state */
+.empty-state i {
+    font-size: 48px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+/* Tiêu đề trong empty state */
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+/* Mô tả trong empty state */
+.empty-state p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* ============================================
+   ERROR MESSAGE (Thông báo lỗi)
+   ============================================ */
+
+/* Container thông báo lỗi */
+.error-message {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fef2f2;  /* Đỏ rất nhạt */
+    border: 1px solid #fecaca;  /* Đỏ nhạt */
+    border-radius: 12px;
+    color: #991b1b;  /* Đỏ đậm */
+}
+
+/* Icon lỗi */
+.error-message i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    color: #dc2626;
+}
+
+/* Tiêu đề lỗi */
+.error-message h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #991b1b;
+}
+
+/* Mô tả lỗi */
+.error-message p {
+    font-size: 14px;
+    margin: 0 0 20px 0;
+    color: #7f1d1d;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN (Thiết kế đáp ứng)
+   ============================================ */
+
+/* Media query cho màn hình nhỏ hơn 768px (tablet và mobile) */
+@media (max-width: 768px) {
+    /* Grid phiếu bảo trì thành 1 cột */
+    .baotri-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Section header thành cột (tiêu đề và nút xếp dọc) */
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;  /* Căng toàn bộ chiều rộng */
+    }
+    
+    /* Modal content full width trên mobile */
+    .modal-content {
+        max-width: 100%;
+        padding: 20px;
+        max-height: 95vh;
+    }
+    
+    /* Form actions thành cột trên mobile */
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+    
+    /* Radio group full width trên mobile */
+    .radio-group {
+        width: 100%;
+    }
+}
+
+/* Media query cho màn hình rất nhỏ (nhỏ hơn 480px) */
+@media (max-width: 480px) {
+    /* Padding nhỏ hơn cho card */
+    .baotri-card {
+        padding: 16px;
+    }
+    
+    /* Font size nhỏ hơn cho header */
+    .baotri-tram {
+        font-size: 16px;
+    }
+}
+
