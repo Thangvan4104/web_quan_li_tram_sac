@@ -244,17 +244,18 @@ switch ($method) {
         $tentram = $conn->real_escape_string($data['TenTram'] ?? '');
         $diachi = $conn->real_escape_string($data['DiaChi'] ?? '');
         $thanhpho = $conn->real_escape_string($data['ThanhPho'] ?? '');
-        $trangthai = $conn->real_escape_string($data['TrangThai'] ?? 'Hoạt động');
+        // Không cho phép cập nhật TrangThai từ form quản lý
+        // TrangThai chỉ được thay đổi tự động từ bảo trì
         
-        // Chuẩn bị câu lệnh SQL UPDATE
+        // Chuẩn bị câu lệnh SQL UPDATE (không cập nhật TrangThai)
         // UPDATE: Cập nhật dữ liệu trong bảng
         // SET: Thiết lập giá trị mới cho các cột
         // WHERE: Điều kiện để xác định dòng cần cập nhật
-        $stmt = $conn->prepare("UPDATE TramSac SET TenTram=?, DiaChi=?, ThanhPho=?, TrangThai=? WHERE MaTram=?");
+        $stmt = $conn->prepare("UPDATE TramSac SET TenTram=?, DiaChi=?, ThanhPho=? WHERE MaTram=?");
         
         // Bind các tham số
-        // "sssss": 5 tham số string, thứ tự: TenTram, DiaChi, ThanhPho, TrangThai, MaTram
-        $stmt->bind_param("sssss", $tentram, $diachi, $thanhpho, $trangthai, $matram);
+        // "ssss": 4 tham số string, thứ tự: TenTram, DiaChi, ThanhPho, MaTram
+        $stmt->bind_param("ssss", $tentram, $diachi, $thanhpho, $matram);
         
         // Thực thi câu lệnh
         if ($stmt->execute()) {

@@ -228,15 +228,17 @@ switch ($method) {
         // Lấy các giá trị cần cập nhật
         $loaicong = $conn->real_escape_string($data['LoaiCongSac'] ?? '');
         $congsuat = intval($data['CongSuat'] ?? 0);
-        $tinhtrang = $conn->real_escape_string($data['TinhTrang'] ?? 'Rảnh');
+        // Không cho phép cập nhật TinhTrang từ form quản lý
+        // TinhTrang chỉ được thay đổi tự động từ bảo trì hoặc phiên sạc
         $matram = $conn->real_escape_string($data['MaTram'] ?? '');
         
-        // Chuẩn bị câu lệnh SQL UPDATE
+        // Chuẩn bị câu lệnh SQL UPDATE (không cập nhật TinhTrang)
         // "siss": string, integer, string, string
-        $stmt = $conn->prepare("UPDATE CotSac SET LoaiCongSac=?, CongSuat=?, TinhTrang=?, MaTram=? WHERE MaCot=?");
+        $stmt = $conn->prepare("UPDATE CotSac SET LoaiCongSac=?, CongSuat=?, MaTram=? WHERE MaCot=?");
         
         // Bind các tham số
-        $stmt->bind_param("siss", $loaicong, $congsuat, $tinhtrang, $matram, $macot);
+        // "siss": string (LoaiCongSac), integer (CongSuat), string (MaTram), string (MaCot)
+        $stmt->bind_param("siss", $loaicong, $congsuat, $matram, $macot);
         
         // Thực thi câu lệnh
         if ($stmt->execute()) {

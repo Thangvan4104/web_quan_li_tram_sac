@@ -207,12 +207,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             }, 500);
             
             // Load dashboard với dữ liệu thống kê ban đầu
-            if (typeof loadDashboard === 'function') {
-                console.log('✅ [MAIN] Loading dashboard...');
-                loadDashboard();
-            } else {
-                console.warn('⚠️ [MAIN] loadDashboard function not found');
-            }
+            // Đợi một chút để đảm bảo dashboard.js đã load xong
+            setTimeout(() => {
+                if (typeof loadDashboard === 'function' || (typeof window !== 'undefined' && typeof window.loadDashboard === 'function')) {
+                    console.log('✅ [MAIN] Loading dashboard...');
+                    const dashboardFunc = typeof loadDashboard === 'function' ? loadDashboard : window.loadDashboard;
+                    dashboardFunc();
+                } else {
+                    console.warn('⚠️ [MAIN] loadDashboard function not found');
+                }
+            }, 100);
             
             console.log('✅ [MAIN] Application initialized successfully');
             

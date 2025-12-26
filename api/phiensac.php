@@ -187,13 +187,15 @@ switch ($method) {
         // Điện tiêu thụ: Có thể NULL nếu chưa có
         $dientieuthu = isset($data['DienTieuThu']) && $data['DienTieuThu'] !== null && $data['DienTieuThu'] !== '' ? floatval($data['DienTieuThu']) : null;
         $macot = $conn->real_escape_string($data['MaCot'] ?? '');                       // Mã cột sạc sử dụng (Foreign Key)
-        $biensopt = $conn->real_escape_string($data['BienSoPT'] ?? '');                 // Biển số phương tiện (Foreign Key)
+        // BienSoPT có thể NULL cho khách hàng vãng lai (không muốn đăng ký thông tin)
+        $biensopt = !empty($data['BienSoPT']) ? $conn->real_escape_string($data['BienSoPT']) : null;
         
         // Chuẩn bị câu lệnh SQL INSERT
-        // "sssdss": string, string, string, double, string, string
+        // "sssdss": string, string, string, double, string, string (hoặc NULL)
         $stmt = $conn->prepare("INSERT INTO PhienSac (MaPhien, ThoiGianBatDau, ThoiGianKetThuc, DienTieuThu, MaCot, BienSoPT) VALUES (?, ?, ?, ?, ?, ?)");
         
         // Bind các tham số - xử lý NULL đúng cách
+        // Nếu BienSoPT là NULL, cần dùng "s" thay vì "s" cho string
         $stmt->bind_param("sssdss", $maphien, $thoigianbatdau, $thoigianketthuc, $dientieuthu, $macot, $biensopt);
         
         // Thực thi câu lệnh
@@ -232,7 +234,8 @@ switch ($method) {
         // Điện tiêu thụ: Có thể NULL (sẽ được tính tự động nếu có thời gian kết thúc)
         $dientieuthu = isset($data['DienTieuThu']) && $data['DienTieuThu'] !== null && $data['DienTieuThu'] !== '' ? floatval($data['DienTieuThu']) : null;
         $macot = $conn->real_escape_string($data['MaCot'] ?? '');
-        $biensopt = $conn->real_escape_string($data['BienSoPT'] ?? '');
+        // BienSoPT có thể NULL cho khách hàng vãng lai
+        $biensopt = !empty($data['BienSoPT']) ? $conn->real_escape_string($data['BienSoPT']) : null;
         
         // Kiểm tra xem có đang kết thúc phiên sạc không (có ThoiGianKetThuc và chưa có hóa đơn)
         // Lấy thông tin phiên sạc hiện tại từ database
@@ -253,30 +256,57 @@ switch ($method) {
         
         // Nếu có thời gian kết thúc và chưa có hóa đơn, tự động tính toán
         // Kiểm tra: ThoiGianKetThuc được set VÀ chưa có MaHoaDon trong database
-        if ($thoigianketthuc && empty($phienInfo['MaHoaDon'])) {
-            // Sử dụng thông tin cột sạc từ query trên
-            if ($phienInfo['LoaiCongSac'] && $phienInfo['CongSuat']) {
+        // Sử dụng kiểm tra rõ ràng hơn: NULL hoặc empty string đều được coi là chưa có hóa đơn
+        $maHoaDon = $phienInfo['MaHoaDon'] ?? null;
+        $hasInvoice = !empty($maHoaDon) && trim($maHoaDon) !== '';
+        
+        if ($thoigianketthuc && !$hasInvoice) {
+            // Kiểm tra thông tin cột sạc
+            $loaiCongSac = $phienInfo['LoaiCongSac'] ?? null;
+            $congSuat = $phienInfo['CongSuat'] ?? null;
+            
+            if (!empty($loaiCongSac) && !empty($congSuat) && $congSuat > 0) {
+                // Log thông tin đầu vào để debug
+                error_log("Bắt đầu tính toán tự động cho phiên sạc: MaPhien = " . $maphien);
+                error_log("Thông tin: ThoiGianBatDau = " . $phienInfo['ThoiGianBatDau'] . ", ThoiGianKetThuc = " . $thoigianketthuc . ", CongSuat = " . $congSuat . ", LoaiCongSac = " . $loaiCongSac);
+                
                 // Tính toán tự động dựa trên thời gian bắt đầu từ database (chính xác hơn)
                 $calculatedData = calculateChargingCost(
                     $conn, 
                     $phienInfo['ThoiGianBatDau'], 
                     $thoigianketthuc, 
-                    floatval($phienInfo['CongSuat']), 
-                    $phienInfo['LoaiCongSac']
+                    floatval($congSuat), 
+                    $loaiCongSac
                 );
                 
                 if ($calculatedData) {
                     $autoCalculate = true;
                     $dientieuthu = $calculatedData['dienTieuThu'];
+                    
+                    // Log kết quả tính toán
+                    error_log("Kết quả tính toán: DienTieuThu = " . $dientieuthu . " kWh, SoGio = " . ($calculatedData['soGio'] ?? 'N/A') . ", CongSuatKW = " . ($calculatedData['congSuatKW'] ?? 'N/A') . " kW");
+                    
+                    // Kiểm tra kết quả hợp lý
+                    if ($dientieuthu > 1000) {
+                        error_log("CẢNH BÁO: Điện tiêu thụ quá cao (" . $dientieuthu . " kWh) cho phiên sạc " . $maphien . ". Có thể có lỗi trong tính toán!");
+                    }
                 } else {
                     // Nếu không tìm thấy giá, vẫn cập nhật phiên sạc nhưng không tạo hóa đơn
-                    error_log("Không tìm thấy giá cho loại cổng sạc: " . $phienInfo['LoaiCongSac']);
+                    error_log("Không tìm thấy giá cho loại cổng sạc: " . $loaiCongSac . " (MaPhien: " . $maphien . ")");
                 }
+            } else {
+                // Log lỗi nếu thiếu thông tin cột sạc
+                error_log("Thiếu thông tin cột sạc - LoaiCongSac: " . ($loaiCongSac ?? 'NULL') . ", CongSuat: " . ($congSuat ?? 'NULL') . " (MaPhien: " . $maphien . ")");
+            }
+        } else {
+            // Log để debug
+            if ($thoigianketthuc && $hasInvoice) {
+                error_log("Phiên sạc đã có hóa đơn, không tạo mới (MaPhien: " . $maphien . ", MaHoaDon: " . $maHoaDon . ")");
             }
         }
         
         // Chuẩn bị câu lệnh SQL UPDATE
-        // "ssdsss": string, string, double, string, string, string
+        // "ssdsss": string, string, double, string, string (hoặc NULL), string
         $stmt = $conn->prepare("UPDATE PhienSac SET ThoiGianBatDau=?, ThoiGianKetThuc=?, DienTieuThu=?, MaCot=?, BienSoPT=? WHERE MaPhien=?");
         
         // Bind các tham số - xử lý NULL đúng cách
@@ -325,13 +355,17 @@ switch ($method) {
             
             // Trả về thông báo thành công
             $response = ['message' => 'Cập nhật phiên sạc thành công'];
-            if ($autoCalculate && $calculatedData) {
+            if ($autoCalculate && $calculatedData && isset($mahd)) {
+                $response['message'] = 'Cập nhật phiên sạc thành công và đã tạo hóa đơn tự động';
                 $response['calculated'] = [
                     'dienTieuThu' => $calculatedData['dienTieuThu'],
                     'soTien' => $calculatedData['soTien'],
                     'soGio' => $calculatedData['soGio'],
-                    'maHD' => isset($mahd) ? $mahd : null
+                    'maHD' => $mahd
                 ];
+            } elseif ($thoigianketthuc && !$hasInvoice && !$autoCalculate) {
+                // Nếu có thời gian kết thúc nhưng không tạo được hóa đơn
+                $response['warning'] = 'Phiên sạc đã kết thúc nhưng không thể tạo hóa đơn tự động. Vui lòng kiểm tra thông tin cột sạc và giá sạc.';
             }
             echo json_encode($response, JSON_UNESCAPED_UNICODE);
             

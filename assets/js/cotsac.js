@@ -569,14 +569,19 @@ async function openCotSacModal(macot = null) {
                     <small class="form-hint">Công suất từ 1 đến 500 kW</small>
                 </div>
                 
-                <!-- Tình trạng -->
+                <!-- Tình trạng (chỉ hiển thị, không cho chỉnh sửa) -->
                 <div class="form-group">
-                    <label for="cotsac-tinhtrang">Tình Trạng <span class="required">*</span></label>
-                    <select id="cotsac-tinhtrang" name="TinhTrang" required>
-                        <option value="Rảnh">Rảnh</option>
-                        <option value="Đang sạc">Đang sạc</option>
-                        <option value="Bảo trì">Bảo trì</option>
-                    </select>
+                    <label for="cotsac-tinhtrang">Tình Trạng</label>
+                    <input 
+                        type="text" 
+                        id="cotsac-tinhtrang" 
+                        name="TinhTrang" 
+                        readonly
+                        disabled
+                        style="background-color: #f5f5f5; cursor: not-allowed;"
+                        placeholder="Tình trạng chỉ được thay đổi tự động"
+                    >
+                    <small class="form-hint" style="color: #666;">Tình trạng chỉ được thay đổi tự động khi tạo bảo trì hoặc phiên sạc</small>
                 </div>
                 
                 <!-- Các nút hành động -->
@@ -617,7 +622,11 @@ async function openCotSacModal(macot = null) {
             document.getElementById('cotsac-matram').value = cot.MaTram || '';
             document.getElementById('cotsac-loaicong').value = cot.LoaiCongSac || '';
             document.getElementById('cotsac-congsuat').value = cot.CongSuat || '';
-            document.getElementById('cotsac-tinhtrang').value = cot.TinhTrang || 'Rảnh';
+            // Tình trạng chỉ hiển thị, không cho chỉnh sửa
+            const tinhTrangInput = document.getElementById('cotsac-tinhtrang');
+            if (tinhTrangInput) {
+                tinhTrangInput.value = cot.TinhTrang || 'Rảnh';
+            }
             
         } catch (error) {
             // Xử lý lỗi
@@ -719,8 +728,8 @@ async function saveCotSac(event) {
         MaCot: formData.get('MaCot')?.trim().toUpperCase() || '',      // Chuyển sang chữ hoa
         MaTram: formData.get('MaTram')?.trim() || '',
         LoaiCongSac: formData.get('LoaiCongSac')?.trim() || '',
-        CongSuat: parseInt(formData.get('CongSuat') || '0', 10),        // Chuyển sang integer
-        TinhTrang: formData.get('TinhTrang') || 'Rảnh'
+        CongSuat: parseInt(formData.get('CongSuat') || '0', 10)        // Chuyển sang integer
+        // Không gửi TinhTrang - tình trạng chỉ được thay đổi tự động từ bảo trì hoặc phiên sạc
     };
     
     // Validate dữ liệu

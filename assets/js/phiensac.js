@@ -258,8 +258,9 @@ function createPhienSacCard(phien) {
                     <span>Cột sạc: ${escapeHtml(phien.MaCot)}</span>
                 </div>
                 `}
-                <!-- Thông tin phương tiện -->
-                ${phien.DongXe ? `
+                <!-- Thông tin phương tiện (có thể không có cho khách hàng vãng lai) -->
+                ${phien.BienSoPT ? (
+                    phien.DongXe ? `
                 <div class="phiensac-info-item">
                     <i class="fas fa-car"></i>
                     <span>Phương tiện: ${escapeHtml(phien.BienSoPT)} - ${escapeHtml(phien.DongXe)} (${escapeHtml(phien.HangXe || '')})</span>
@@ -268,6 +269,12 @@ function createPhienSacCard(phien) {
                 <div class="phiensac-info-item">
                     <i class="fas fa-car"></i>
                     <span>Phương tiện: ${escapeHtml(phien.BienSoPT)}</span>
+                </div>
+                `
+                ) : `
+                <div class="phiensac-info-item">
+                    <i class="fas fa-user-clock"></i>
+                    <span>Khách hàng vãng lai (không đăng ký thông tin)</span>
                 </div>
                 `}
                 <!-- Thông tin khách hàng -->
@@ -369,6 +376,7 @@ function filterPhienSac() {
             (phien.MaPhien && phien.MaPhien.toLowerCase().includes(searchTerm)) ||
             (phien.MaCot && phien.MaCot.toLowerCase().includes(searchTerm)) ||
             (phien.BienSoPT && phien.BienSoPT.toLowerCase().includes(searchTerm)) ||
+            (!phien.BienSoPT && 'vãng lai'.includes(searchTerm.toLowerCase())) ||
             (phien.DongXe && phien.DongXe.toLowerCase().includes(searchTerm)) ||
             (phien.TenKhachHang && phien.TenKhachHang.toLowerCase().includes(searchTerm)) ||
             (phien.LoaiCongSac && phien.LoaiCongSac.toLowerCase().includes(searchTerm));
@@ -524,13 +532,14 @@ async function openPhienSacModal(maphien = null) {
                     </select>
                 </div>
                 
-                <!-- Phương tiện (dropdown) -->
+                <!-- Phương tiện (dropdown) - Không bắt buộc, cho phép khách hàng vãng lai -->
                 <div class="form-group">
-                    <label for="phiensac-biensopt">Phương Tiện <span class="required">*</span></label>
-                    <select id="phiensac-biensopt" name="BienSoPT" required>
-                        <option value="">-- Chọn phương tiện --</option>
+                    <label for="phiensac-biensopt">Phương Tiện</label>
+                    <select id="phiensac-biensopt" name="BienSoPT">
+                        <option value="">-- Khách hàng vãng lai (không cần đăng ký) --</option>
                         ${phuongtienOptions}
                     </select>
+                    <small class="form-hint">Để trống nếu khách hàng không muốn đăng ký thông tin</small>
                 </div>
                 
                 <!-- Thời gian bắt đầu -->
@@ -761,7 +770,8 @@ async function savePhienSac(event) {
     const phienData = {
         MaPhien: formData.get('MaPhien')?.trim() || '',                    // Mã phiên sạc (Primary Key)
         MaCot: formData.get('MaCot')?.trim() || '',                      // Mã cột sạc
-        BienSoPT: formData.get('BienSoPT')?.trim() || '',                // Biển số phương tiện
+        // BienSoPT có thể rỗng cho khách hàng vãng lai
+        BienSoPT: formData.get('BienSoPT')?.trim() || null,                // Biển số phương tiện (có thể NULL)
         ThoiGianBatDau: convertToMySQLDateTime(formData.get('ThoiGianBatDau')),  // Thời gian bắt đầu
         ThoiGianKetThuc: convertToMySQLDateTime(formData.get('ThoiGianKetThuc')) || null,  // Thời gian kết thúc (có thể NULL)
         DienTieuThu: formData.get('DienTieuThu') ? parseFloat(formData.get('DienTieuThu')) : null  // Điện tiêu thụ (có thể NULL)
@@ -775,9 +785,9 @@ async function savePhienSac(event) {
         return;
     }
     
-    // Kiểm tra các trường bắt buộc
-    if (!phienData.MaCot || !phienData.BienSoPT || !phienData.ThoiGianBatDau) {
-        alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+    // Kiểm tra các trường bắt buộc (BienSoPT không bắt buộc cho khách hàng vãng lai)
+    if (!phienData.MaCot || !phienData.ThoiGianBatDau) {
+        alert('Vui lòng điền đầy đủ thông tin bắt buộc (Mã phiên, Cột sạc, Thời gian bắt đầu)');
         return;
     }
     

@@ -117,6 +117,9 @@ switch ($method) {
             // Nếu là staff (không phải admin), chỉ lấy hóa đơn của trạm nhân viên đó
             // Admin có thể lọc theo trạm bằng tham số matram
             
+            // Kiểm tra xem có tham số all=true không (để lấy tất cả hóa đơn, không chỉ chưa thanh toán)
+            $getAll = isset($_GET['all']) && $_GET['all'] === 'true';
+            
             // Kiểm tra xem user có phải admin không
             $isAdmin = ($user['role'] === 'admin');
             $userMaTram = $user['MaTram'] ?? null;
@@ -133,23 +136,43 @@ switch ($method) {
                 $whereClause = "WHERE c.MaTram = '$filterMaTram'";
             }
             
-            // Câu lệnh SQL lấy tất cả hóa đơn CHƯA THANH TOÁN với thông tin liên quan
-            // Chỉ hiển thị hóa đơn có tổng số tiền đã thanh toán < SoTien hoặc chưa có thanh toán nào
-            // ORDER BY hd.NgayLap DESC: Sắp xếp theo ngày lập, mới nhất trước
-            $result = $conn->query("SELECT hd.*, 
-                                    ps.ThoiGianBatDau, c.MaTram,
-                                    kh.HoTen as TenKhachHang,
-                                    COALESCE(SUM(tt.SoTien), 0) as DaThanhToan
-                                    FROM HoaDon hd
-                                    LEFT JOIN PhienSac ps ON hd.MaPhien = ps.MaPhien
-                                    LEFT JOIN CotSac c ON ps.MaCot = c.MaCot
-                                    LEFT JOIN PhuongTien pt ON ps.BienSoPT = pt.BienSo
-                                    LEFT JOIN KhachHang kh ON pt.MaKH = kh.MaKH
-                                    LEFT JOIN ThanhToan tt ON hd.MaHD = tt.MaHD
-                                    $whereClause
-                                    GROUP BY hd.MaHD
-                                    HAVING COALESCE(SUM(tt.SoTien), 0) < hd.SoTien
-                                    ORDER BY hd.NgayLap DESC");
+            // Nếu getAll = true, lấy tất cả hóa đơn (cho dashboard)
+            // Nếu không, chỉ lấy hóa đơn chưa thanh toán đủ (cho trang quản lý)
+            if ($getAll) {
+                // Câu lệnh SQL lấy TẤT CẢ hóa đơn với thông tin liên quan
+                // ORDER BY hd.NgayLap DESC: Sắp xếp theo ngày lập, mới nhất trước
+                $result = $conn->query("SELECT hd.*, 
+                                        ps.ThoiGianBatDau, c.MaTram,
+                                        kh.HoTen as TenKhachHang,
+                                        COALESCE(SUM(tt.SoTien), 0) as DaThanhToan
+                                        FROM HoaDon hd
+                                        LEFT JOIN PhienSac ps ON hd.MaPhien = ps.MaPhien
+                                        LEFT JOIN CotSac c ON ps.MaCot = c.MaCot
+                                        LEFT JOIN PhuongTien pt ON ps.BienSoPT = pt.BienSo
+                                        LEFT JOIN KhachHang kh ON pt.MaKH = kh.MaKH
+                                        LEFT JOIN ThanhToan tt ON hd.MaHD = tt.MaHD
+                                        $whereClause
+                                        GROUP BY hd.MaHD
+                                        ORDER BY hd.NgayLap DESC");
+            } else {
+                // Câu lệnh SQL lấy tất cả hóa đơn CHƯA THANH TOÁN với thông tin liên quan
+                // Chỉ hiển thị hóa đơn có tổng số tiền đã thanh toán < SoTien hoặc chưa có thanh toán nào
+                // ORDER BY hd.NgayLap DESC: Sắp xếp theo ngày lập, mới nhất trước
+                $result = $conn->query("SELECT hd.*, 
+                                        ps.ThoiGianBatDau, c.MaTram,
+                                        kh.HoTen as TenKhachHang,
+                                        COALESCE(SUM(tt.SoTien), 0) as DaThanhToan
+                                        FROM HoaDon hd
+                                        LEFT JOIN PhienSac ps ON hd.MaPhien = ps.MaPhien
+                                        LEFT JOIN CotSac c ON ps.MaCot = c.MaCot
+                                        LEFT JOIN PhuongTien pt ON ps.BienSoPT = pt.BienSo
+                                        LEFT JOIN KhachHang kh ON pt.MaKH = kh.MaKH
+                                        LEFT JOIN ThanhToan tt ON hd.MaHD = tt.MaHD
+                                        $whereClause
+                                        GROUP BY hd.MaHD
+                                        HAVING COALESCE(SUM(tt.SoTien), 0) < hd.SoTien
+                                        ORDER BY hd.NgayLap DESC");
+            }
             
             // Khởi tạo mảng để chứa danh sách hóa đơn
             $hds = [];

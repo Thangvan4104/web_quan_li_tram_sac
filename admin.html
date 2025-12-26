@@ -16,6 +16,9 @@
     <!-- Tiêu đề trang hiển thị trên tab trình duyệt -->
     <title>Quản Trị Viên - Hệ Thống Quản Lý Trạm Sạc Xe Điện</title>
     
+    <!-- Favicon: Tắt yêu cầu favicon để tránh lỗi 404 -->
+    <link rel="icon" href="data:,">
+    
     <!-- Stylesheet cơ bản: File CSS chứa các style chung (reset, variables, layout, buttons, modal, form) -->
     <link rel="stylesheet" href="assets/css/base.css">
     
@@ -60,6 +63,9 @@
     
     <!-- Font Awesome Icons: Thư viện icon từ CDN, cung cấp các icon như home, building, plug, etc. -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js: Thư viện vẽ biểu đồ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
     <!-- KHÔNG CÒN META REFRESH - Đã xóa để tránh reload tự động -->
     <!-- Meta refresh đã được loại bỏ hoàn toàn vì gây reload không mong muốn -->
@@ -311,7 +317,7 @@
                         
                         <!-- Card thống kê: Doanh thu hôm nay -->
                         <!-- Tính tổng tiền từ các hóa đơn được tạo hôm nay -->
-                        <div class="stat-card">
+                        <div class="stat-card clickable-stat" data-stat-type="daily-revenue">
                             <div class="stat-icon pink">
                                 <i class="fas fa-money-bill-wave"></i>
                             </div>
@@ -323,7 +329,7 @@
                         
                         <!-- Card thống kê: Tổng doanh thu -->
                         <!-- Tính tổng tiền từ tất cả hóa đơn -->
-                        <div class="stat-card">
+                        <div class="stat-card clickable-stat" data-stat-type="total-revenue">
                             <div class="stat-icon cyan">
                                 <i class="fas fa-chart-line"></i>
                             </div>
@@ -344,15 +350,36 @@
                             </div>
                         </div>
                         
-                        <!-- Card thống kê: Bảo trì đang thực hiện -->
-                        <!-- Hiển thị số bảo trì có trạng thái "Đang thực hiện" -->
-                        <div class="stat-card">
+                        <!-- Card thống kê: Trạm đang bảo trì (chỉ admin) -->
+                        <div class="stat-card clickable-stat" data-stat-type="maintenance">
+                            <div class="stat-icon dark-orange">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="tram-dang-bao-tri">0</h3>
+                                <p>Trạm Đang Bảo Trì</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Cột sạc đang bảo trì (chỉ admin) -->
+                        <div class="stat-card clickable-stat" data-stat-type="maintenance">
+                            <div class="stat-icon dark-orange">
+                                <i class="fas fa-plug"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="cot-dang-bao-tri">0</h3>
+                                <p>Cột Sạc Đang Bảo Trì</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Card thống kê: Tổng bảo trì đang thực hiện (chỉ admin) -->
+                        <div class="stat-card clickable-stat" data-stat-type="maintenance">
                             <div class="stat-icon dark-orange">
                                 <i class="fas fa-tools"></i>
                             </div>
                             <div class="stat-info">
                                 <h3 id="baotri-dang-thuc-hien">0</h3>
-                                <p>Bảo Trì Đang Thực Hiện</p>
+                                <p>Tổng Bảo Trì Đang Thực Hiện</p>
                             </div>
                         </div>
                     </div>
@@ -370,6 +397,47 @@
                         <!-- Nội dung sẽ được JavaScript load động từ API -->
                     </div>
                 </section>
+            </div>
+
+            <!-- ============================================
+                 MODAL CHI TIẾT BẢO TRÌ
+                 ============================================
+            -->
+            <div id="maintenanceModal" class="modal">
+                <div class="modal-content modal-large">
+                    <div class="modal-header">
+                        <h2>Chi Tiết Bảo Trì Đang Thực Hiện</h2>
+                        <button class="modal-close" onclick="closeMaintenanceModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="maintenanceList" class="maintenance-list">
+                            <!-- Nội dung sẽ được load động -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================
+                 MODAL BIỂU ĐỒ THỐNG KÊ
+                 ============================================
+            -->
+            <div id="revenueChartModal" class="modal">
+                <div class="modal-content modal-large">
+                    <div class="modal-header">
+                        <h2 id="chartModalTitle">Biểu Đồ Thống Kê Doanh Thu</h2>
+                        <button class="modal-close" onclick="closeRevenueChartModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="chart-controls">
+                            <button class="btn btn-primary btn-sm" data-chart-type="daily" onclick="switchChartType('daily')">Theo Ngày</button>
+                            <button class="btn btn-secondary btn-sm" data-chart-type="monthly" onclick="switchChartType('monthly')">Theo Tháng</button>
+                            <button class="btn btn-secondary btn-sm" data-chart-type="yearly" onclick="switchChartType('yearly')">Theo Năm</button>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- ============================================

@@ -26,10 +26,30 @@ async function loadDashboard() {
     showLoading();
     
     try {
-        // Kiểm tra xem user có phải admin không
-        // Nếu là staff, các API sẽ tự động lọc theo trạm của nhân viên
-        const isAdminUser = typeof isAdmin === 'function' ? isAdmin() : false;
-        const userMaTram = window.currentUser?.MaTram || null;
+        // Đợi một chút để đảm bảo window.currentUser đã được set
+        // Nếu chưa có, thử lấy từ API
+        let currentUser = window.currentUser;
+        if (!currentUser) {
+            try {
+                const userResponse = await apiFetch(`${API_BASE}/auth.php`);
+                const userData = await userResponse.json();
+                if (userData && userData.user) {
+                    currentUser = userData.user;
+                    window.currentUser = currentUser;
+                }
+            } catch (e) {
+                console.warn('Không thể lấy thông tin user từ API:', e);
+            }
+        }
+        
+        currentUser = currentUser || {};
+        const isAdminUser = currentUser.role === 'admin';
+        const userMaTram = currentUser.MaTram || null;
+        
+        // Debug log
+        console.log('Dashboard - Current User:', currentUser);
+        console.log('Dashboard - Is Admin:', isAdminUser);
+        console.log('Dashboard - User MaTram:', userMaTram);
         
         // Sử dụng Promise.all để gọi nhiều API cùng lúc (song song)
         // Mục đích: Tăng tốc độ load dữ liệu thay vì gọi tuần tự
@@ -54,8 +74,8 @@ async function loadDashboard() {
             // Gọi API lấy danh sách phiên sạc
             apiFetch(`${API_BASE}/phiensac.php`).then(r => r.json()),
             
-            // Gọi API lấy danh sách hóa đơn
-            apiFetch(`${API_BASE}/hoadon.php`).then(r => r.json()),
+            // Gọi API lấy danh sách hóa đơn (tất cả, không chỉ chưa thanh toán)
+            apiFetch(`${API_BASE}/hoadon.php?all=true`).then(r => r.json()),
             
             // Gọi API lấy danh sách thanh toán
             apiFetch(`${API_BASE}/thanhtoan.php`).then(r => r.json()),
@@ -166,9 +186,121 @@ async function loadDashboard() {
         updateStat('tong-doanh-thu', tongDoanhThu.toLocaleString('vi-VN'));
         
         // Tính số bảo trì đang thực hiện
-        // TrangThai === 'Đang thực hiện': Kiểm tra trạng thái bảo trì
-        const baotriDangThucHien = safeBaotris.filter(bt => bt && bt.TrangThai === 'Đang thực hiện').length || 0;
-        updateStat('baotri-dang-thuc-hien', baotriDangThucHien);
+        // Tách riêng: Trạm đang bảo trì và Cột sạc đang bảo trì
+        // safeCots đã được khai báo ở trên (dòng 142), không cần khai báo lại
+        const safeTrams = Array.isArray(trams) ? trams : [];
+        
+        // Lọc bảo trì từ bảng BaoTri có trạng thái khác "Hoàn tất"
+        const baotriFromTable = safeBaotris.filter(bt => {
+            if (!bt || !bt.TrangThai) return false;
+            const trangThai = bt.TrangThai.trim();
+            return trangThai !== 'Hoàn tất' && trangThai !== '';
+        });
+        
+        // Lọc trạm sạc đang bảo trì (TrangThai = 'Bảo trì')
+        // Lưu ý: Có thể có khoảng trắng hoặc case khác nhau
+        const tramsDangBaoTri = safeTrams.filter(tram => {
+            if (!tram || !tram.TrangThai) return false;
+            const trangThai = String(tram.TrangThai).trim();
+            // So sánh chính xác và không phân biệt hoa thường
+            const normalized = trangThai.toLowerCase().replace(/\s+/g, ' ').trim();
+            const isBaoTri = normalized === 'bảo trì' || normalized.includes('bảo trì');
+            if (isBaoTri) {
+                console.log('Tìm thấy trạm đang bảo trì:', tram.MaTram, tram.TenTram, 'TrangThai:', tram.TrangThai);
+            }
+            return isBaoTri;
+        });
+        
+        // Lọc cột sạc đang bảo trì (TinhTrang = 'Bảo trì')
+        // Lưu ý: Có thể có khoảng trắng hoặc case khác nhau
+        const cotsDangBaoTri = safeCots.filter(cot => {
+            if (!cot || !cot.TinhTrang) return false;
+            const tinhTrang = String(cot.TinhTrang).trim();
+            // So sánh chính xác và không phân biệt hoa thường
+            const normalized = tinhTrang.toLowerCase().replace(/\s+/g, ' ').trim();
+            const isBaoTri = normalized === 'bảo trì' || normalized.includes('bảo trì');
+            if (isBaoTri) {
+                console.log('Tìm thấy cột sạc đang bảo trì:', cot.MaCot, 'TinhTrang:', cot.TinhTrang);
+            }
+            return isBaoTri;
+        });
+        
+        // Debug log
+        console.log('Dashboard - Tổng số trạm:', safeTrams.length);
+        console.log('Dashboard - Trạm đang bảo trì:', tramsDangBaoTri.length, tramsDangBaoTri);
+        console.log('Dashboard - Tổng số cột sạc:', safeCots.length);
+        console.log('Dashboard - Cột sạc đang bảo trì:', cotsDangBaoTri.length, cotsDangBaoTri);
+        
+        // Tạo danh sách bảo trì đầy đủ: từ bảng BaoTri + từ trạm sạc đang bảo trì
+        const allBaotriList = [...baotriFromTable];
+        
+        // Thêm các trạm sạc đang bảo trì vào danh sách (nếu chưa có trong bảng BaoTri)
+        tramsDangBaoTri.forEach(tram => {
+            // Kiểm tra xem trạm này đã có trong danh sách bảo trì chưa
+            const existsInBaotri = baotriFromTable.some(bt => {
+                // Kiểm tra qua MaTram từ bảo trì
+                const btMaTram = bt.MaTram || (bt.CotMaTram) || (bt.NVMaTram);
+                return btMaTram === tram.MaTram;
+            });
+            
+            // Nếu chưa có, thêm vào danh sách như một bảo trì toàn trạm
+            if (!existsInBaotri) {
+                allBaotriList.push({
+                    MaBT: null, // Không có mã bảo trì vì không có trong bảng BaoTri
+                    NgayBaoTri: null,
+                    NoiDung: 'Bảo trì toàn trạm',
+                    TrangThai: 'Đang thực hiện',
+                    MaCot: null,
+                    MaTram: tram.MaTram,
+                    TenTram: tram.TenTram,
+                    TenNhanVien: null,
+                    ChucVu: null,
+                    LoaiCongSac: null,
+                    isTramMaintenance: true // Flag để đánh dấu đây là bảo trì trạm
+                });
+            }
+        });
+        
+        // Lưu danh sách bảo trì đang thực hiện để hiển thị khi click
+        window.baotriDangThucHienList = allBaotriList;
+        
+        // Kiểm tra xem user có phải admin không
+        if (isAdminUser) {
+            // Admin: Hiển thị tổng số trạm đang bảo trì và tổng số cột sạc đang bảo trì
+            const soTramDangBaoTri = tramsDangBaoTri.length || 0;
+            const soCotDangBaoTri = cotsDangBaoTri.length || 0;
+            
+            console.log('Dashboard Admin - Số trạm đang bảo trì:', soTramDangBaoTri);
+            console.log('Dashboard Admin - Số cột sạc đang bảo trì:', soCotDangBaoTri);
+            
+            // Cập nhật số trạm đang bảo trì
+            const tramBaoTriElement = document.getElementById('tram-dang-bao-tri');
+            if (tramBaoTriElement) {
+                tramBaoTriElement.textContent = soTramDangBaoTri;
+                console.log('Dashboard Admin - Đã cập nhật tram-dang-bao-tri:', soTramDangBaoTri);
+            } else {
+                console.warn('Dashboard Admin - Không tìm thấy element tram-dang-bao-tri');
+            }
+            
+            // Cập nhật số cột sạc đang bảo trì
+            const cotBaoTriElement = document.getElementById('cot-dang-bao-tri');
+            if (cotBaoTriElement) {
+                cotBaoTriElement.textContent = soCotDangBaoTri;
+                console.log('Dashboard Admin - Đã cập nhật cot-dang-bao-tri:', soCotDangBaoTri);
+            } else {
+                console.warn('Dashboard Admin - Không tìm thấy element cot-dang-bao-tri');
+            }
+            
+            // Cập nhật tổng số bảo trì (trạm + cột) cho card click
+            const tongBaoTri = soTramDangBaoTri + soCotDangBaoTri;
+            updateStat('baotri-dang-thuc-hien', tongBaoTri);
+            console.log('Dashboard Admin - Tổng bảo trì:', tongBaoTri);
+        } else {
+            // Nhân viên: Chỉ hiển thị số cột sạc đang bảo trì của trạm mình
+            const soCotDangBaoTri = cotsDangBaoTri.length || 0;
+            console.log('Dashboard Staff - Số cột sạc đang bảo trì:', soCotDangBaoTri);
+            updateStat('baotri-dang-thuc-hien', soCotDangBaoTri);
+        }
         
         // ============================================
         // LOAD VÀ HIỂN THỊ HOẠT ĐỘNG GẦN ĐÂY
@@ -190,6 +322,9 @@ async function loadDashboard() {
         // slice(0, 5): Lấy 5 phiên sạc đầu tiên (mới nhất)
         loadRecentActivities(phiensSorted.slice(0, 5));
         
+        // Khởi tạo event handlers cho các card thống kê có thể click
+        initRevenueChartClickHandlers();
+        
     } catch (error) {
         // Xử lý lỗi nếu có
         // console.error(): In lỗi ra console để debug
@@ -204,6 +339,7 @@ async function loadDashboard() {
         hideLoading();
     }
 }
+
 
 /**
  * Hàm: loadRecentActivities(activities)
@@ -367,6 +503,765 @@ function loadRecentActivities(activities) {
                 </div>
             </div>
         `;
-    }).join(''); // Nối tất cả các chuỗi HTML lại với nhau
+        }).join(''); // Nối tất cả các chuỗi HTML lại với nhau
 }
+
+// ============================================
+// BIỂU ĐỒ THỐNG KÊ DOANH THU
+// ============================================
+
+// Biến lưu trữ instance của biểu đồ
+let revenueChartInstance = null;
+let currentChartType = 'daily';
+
+/**
+ * Hàm: initRevenueChartClickHandlers()
+ * Mô tả: Khởi tạo event handlers cho các card thống kê doanh thu
+ */
+function initRevenueChartClickHandlers() {
+    // Lấy tất cả các card có class clickable-stat
+    const clickableStats = document.querySelectorAll('.clickable-stat');
+    
+    clickableStats.forEach(card => {
+        card.addEventListener('click', function() {
+            const statType = this.getAttribute('data-stat-type');
+            if (statType === 'daily-revenue' || statType === 'total-revenue') {
+                openRevenueChartModal(statType);
+            } else if (statType === 'maintenance') {
+                openMaintenanceModal();
+            }
+        });
+        
+        // Thêm style cursor pointer
+        card.style.cursor = 'pointer';
+    });
+}
+
+/**
+ * Hàm: openRevenueChartModal(statType)
+ * Mô tả: Mở modal hiển thị biểu đồ thống kê doanh thu
+ * @param {string} statType - Loại thống kê: 'daily-revenue' hoặc 'total-revenue'
+ */
+function openRevenueChartModal(statType) {
+    const modal = document.getElementById('revenueChartModal');
+    const title = document.getElementById('chartModalTitle');
+    
+    if (!modal) return;
+    
+    // Đặt tiêu đề modal
+    if (statType === 'daily-revenue') {
+        title.textContent = 'Biểu Đồ Doanh Thu Theo Ngày';
+    } else {
+        title.textContent = 'Biểu Đồ Tổng Doanh Thu';
+    }
+    
+    // Reset chart type về daily
+    currentChartType = 'daily';
+    updateChartTypeButtons();
+    
+    // Hiển thị modal
+    modal.style.display = 'block';
+    
+    // Load và vẽ biểu đồ
+    loadRevenueChart('daily');
+}
+
+/**
+ * Hàm: closeRevenueChartModal()
+ * Mô tả: Đóng modal biểu đồ
+ */
+function closeRevenueChartModal() {
+    const modal = document.getElementById('revenueChartModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    // Hủy biểu đồ nếu có
+    if (revenueChartInstance) {
+        revenueChartInstance.destroy();
+        revenueChartInstance = null;
+    }
+}
+
+/**
+ * Hàm: switchChartType(type)
+ * Mô tả: Chuyển đổi loại biểu đồ (ngày/tháng/năm)
+ * @param {string} type - Loại biểu đồ: 'daily', 'monthly', 'yearly'
+ */
+function switchChartType(type) {
+    currentChartType = type;
+    updateChartTypeButtons();
+    // Thêm hiệu ứng fade khi chuyển đổi
+    const chartContainer = document.querySelector('.chart-container');
+    if (chartContainer) {
+        chartContainer.style.opacity = '0.5';
+        chartContainer.style.transition = 'opacity 0.3s ease';
+    }
+    loadRevenueChart(type).then(() => {
+        if (chartContainer) {
+            setTimeout(() => {
+                chartContainer.style.opacity = '1';
+            }, 100);
+        }
+    });
+}
+
+/**
+ * Hàm: updateChartTypeButtons()
+ * Mô tả: Cập nhật trạng thái các nút chuyển đổi loại biểu đồ
+ */
+function updateChartTypeButtons() {
+    const buttons = document.querySelectorAll('.chart-controls button[data-chart-type]');
+    buttons.forEach(btn => {
+        const btnType = btn.getAttribute('data-chart-type');
+        if (btnType === currentChartType) {
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary');
+        } else {
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-secondary');
+        }
+    });
+}
+
+/**
+ * Hàm: loadRevenueChart(type)
+ * Mô tả: Load dữ liệu và vẽ biểu đồ doanh thu
+ * @param {string} type - Loại biểu đồ: 'daily', 'monthly', 'yearly'
+ */
+async function loadRevenueChart(type) {
+    try {
+        // Hiển thị loading
+        const canvas = document.getElementById('revenueChart');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        
+        // Gọi API để lấy dữ liệu thống kê
+        const response = await apiFetch(`${API_BASE}/thongke.php?type=${type}`);
+        const data = await response.json();
+        
+        if (!Array.isArray(data)) {
+            console.error('Dữ liệu thống kê không hợp lệ:', data);
+            return;
+        }
+        
+        // Chuẩn bị dữ liệu cho biểu đồ
+        let labels = [];
+        let revenueData = [];
+        let invoiceCountData = [];
+        let datasets = []; // Khai báo ở scope cao hơn
+        
+        if (type === 'daily') {
+            labels = data.map(item => {
+                const date = new Date(item.ngay);
+                return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+            });
+            revenueData = data.map(item => item.tongTien);
+            invoiceCountData = data.map(item => item.soHoaDon);
+        } else if (type === 'monthly') {
+            // Xử lý dữ liệu monthly với chi tiết theo loại cột sạc
+            labels = data.map(item => {
+                // Format: T1, T2, T3, ... T12
+                const month = item.thang.split('-')[1];
+                return 'T' + parseInt(month);
+            });
+            
+            // Lấy danh sách các loại cột sạc duy nhất
+            const loaiCongSacSet = new Set();
+            data.forEach(item => {
+                if (item.chiTiet) {
+                    Object.keys(item.chiTiet).forEach(loai => loaiCongSacSet.add(loai));
+                }
+            });
+            const loaiCongSacList = Array.from(loaiCongSacSet);
+            
+            // Tạo datasets cho từng loại cột sạc (stacked bar chart)
+            const colors = [
+                { border: '#f59e0b', fill: 'rgba(245, 158, 11, 0.8)' }, // Vàng cam
+                { border: '#ef4444', fill: 'rgba(239, 68, 68, 0.8)' }, // Cam đỏ
+                { border: '#14b8a6', fill: 'rgba(20, 184, 166, 0.8)' }  // Teal
+            ];
+            
+            loaiCongSacList.forEach((loai, index) => {
+                const color = colors[index % colors.length];
+                const loaiData = data.map(item => {
+                    if (item.chiTiet && item.chiTiet[loai]) {
+                        return item.chiTiet[loai].tongTien;
+                    }
+                    return 0;
+                });
+                
+                datasets.push({
+                    label: loai,
+                    data: loaiData,
+                    borderColor: color.border,
+                    backgroundColor: color.fill,
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    stack: 'revenue'
+                });
+            });
+            
+            // Nếu không có dữ liệu chi tiết, dùng dữ liệu tổng
+            if (datasets.length === 0) {
+                revenueData = data.map(item => item.tongTien);
+                invoiceCountData = data.map(item => item.soHoaDon);
+            } else {
+                revenueData = null; // Sẽ dùng datasets
+                invoiceCountData = data.map(item => item.soHoaDon);
+            }
+        } else if (type === 'yearly') {
+            labels = data.map(item => item.nam.toString());
+            revenueData = data.map(item => item.tongTien);
+            invoiceCountData = data.map(item => item.soHoaDon);
+        }
+        
+        // Hủy biểu đồ cũ nếu có
+        if (revenueChartInstance) {
+            revenueChartInstance.destroy();
+        }
+        
+        // Tạo gradient đẹp hơn cho background
+        const gradientRevenue = ctx.createLinearGradient(0, 0, 0, 500);
+        gradientRevenue.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
+        gradientRevenue.addColorStop(0.5, 'rgba(59, 130, 246, 0.15)');
+        gradientRevenue.addColorStop(1, 'rgba(59, 130, 246, 0.02)');
+        
+        const gradientInvoice = ctx.createLinearGradient(0, 0, 0, 500);
+        gradientInvoice.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
+        gradientInvoice.addColorStop(0.5, 'rgba(16, 185, 129, 0.15)');
+        gradientInvoice.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
+        
+        // Xác định datasets dựa trên type
+        let chartDatasets = [];
+        const isMonthlyStacked = (type === 'monthly' && revenueData === null && datasets && datasets.length > 0);
+        
+        if (isMonthlyStacked) {
+            // Sử dụng stacked bar chart cho monthly
+            chartDatasets = datasets;
+        } else {
+            // Line chart cho daily và yearly
+            chartDatasets = [
+                {
+                    label: '💰 Doanh Thu (VNĐ)',
+                    data: revenueData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: gradientRevenue,
+                    borderWidth: 3.5,
+                    tension: 0.5,
+                    yAxisID: 'y',
+                    fill: true,
+                    pointRadius: 6,
+                    pointHoverRadius: 10,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#3b82f6',
+                    pointBorderWidth: 3,
+                    pointHoverBackgroundColor: '#3b82f6',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 4,
+                    cubicInterpolationMode: 'monotone'
+                },
+                {
+                    label: '📄 Số Hóa Đơn',
+                    data: invoiceCountData,
+                    borderColor: '#10b981',
+                    backgroundColor: gradientInvoice,
+                    borderWidth: 3.5,
+                    tension: 0.5,
+                    yAxisID: 'y1',
+                    fill: true,
+                    pointRadius: 6,
+                    pointHoverRadius: 10,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#10b981',
+                    pointBorderWidth: 3,
+                    pointHoverBackgroundColor: '#10b981',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 4,
+                    cubicInterpolationMode: 'monotone'
+                }
+            ];
+        }
+        
+        // Tạo biểu đồ mới với cấu hình đẹp hơn
+        revenueChartInstance = new Chart(ctx, {
+            type: isMonthlyStacked ? 'bar' : 'line',
+            data: {
+                labels: labels,
+                datasets: chartDatasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: {
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                },
+                interaction: {
+                    mode: isMonthlyStacked ? 'nearest' : 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: type === 'daily' ? '📈 Doanh Thu 30 Ngày Gần Nhất' : 
+                              type === 'monthly' ? 'Biểu đồ Doanh thu' : 
+                              '📈 Doanh Thu 5 Năm Gần Nhất',
+                        font: {
+                            size: 24,
+                            weight: '700',
+                            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                        },
+                        color: '#1e293b',
+                        padding: {
+                            top: 15,
+                            bottom: 10
+                        }
+                    },
+                    subtitle: type === 'monthly' ? {
+                        display: true,
+                        text: 'Tổng quan doanh thu theo tháng năm ' + new Date().getFullYear(),
+                        font: {
+                            size: 14,
+                            weight: '400',
+                            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                        },
+                        color: '#64748b',
+                        padding: {
+                            top: 0,
+                            bottom: 25
+                        }
+                    } : undefined,
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'center',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 15,
+                            font: {
+                                size: 14,
+                                weight: '600',
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#374151'
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: 'rgba(59, 130, 246, 0.5)',
+                        borderWidth: 2,
+                        padding: 16,
+                        cornerRadius: 12,
+                        displayColors: true,
+                        titleFont: {
+                            size: 15,
+                            weight: '700',
+                            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                        },
+                        bodyFont: {
+                            size: 14,
+                            weight: '500',
+                            family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                        },
+                        titleSpacing: 8,
+                        bodySpacing: 6,
+                        boxPadding: 8,
+                        usePointStyle: true,
+                        callbacks: {
+                            title: function(context) {
+                                return '📅 ' + context[0].label;
+                            },
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    // Loại bỏ emoji từ label để hiển thị đẹp hơn
+                                    label = label.replace(/[💰📄]/g, '').trim();
+                                    label += ': ';
+                                }
+                                
+                                // Xử lý cho stacked area chart (monthly)
+                                if (isMonthlyStacked) {
+                                    const value = context.parsed.y;
+                                    if (value >= 1000000) {
+                                        label += (value / 1000000).toFixed(2) + 'M₫';
+                                    } else if (value >= 1000) {
+                                        label += (value / 1000).toFixed(0) + 'K₫';
+                                    } else {
+                                        label += new Intl.NumberFormat('vi-VN').format(value) + '₫';
+                                    }
+                                } else if (context.datasetIndex === 0) {
+                                    // Doanh thu
+                                    const value = context.parsed.y;
+                                    if (value >= 1000000) {
+                                        label += (value / 1000000).toFixed(2) + 'M VNĐ';
+                                    } else if (value >= 1000) {
+                                        label += (value / 1000).toFixed(0) + 'K VNĐ';
+                                    } else {
+                                        label += new Intl.NumberFormat('vi-VN').format(value) + ' VNĐ';
+                                    }
+                                } else {
+                                    // Số hóa đơn
+                                    label += context.parsed.y + ' hóa đơn';
+                                }
+                                return label;
+                            },
+                            labelColor: function(context) {
+                                return {
+                                    borderColor: context.dataset.borderColor,
+                                    backgroundColor: context.dataset.borderColor,
+                                    borderWidth: 3,
+                                    borderRadius: 4
+                                };
+                            }
+                        }
+                    }
+                },
+                scales: isMonthlyStacked ? {
+                    x: {
+                        stacked: true,
+                        grid: {
+                            display: false,
+                            drawBorder: false,
+                            drawTicks: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 13,
+                                weight: '600',
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#475569',
+                            padding: 12
+                        },
+                        title: {
+                            display: true,
+                            text: '📅 Tháng',
+                            font: {
+                                size: 15,
+                                weight: '700',
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#1e293b',
+                            padding: {
+                                top: 15,
+                                bottom: 10
+                            }
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.15)',
+                            lineWidth: 1.5,
+                            drawBorder: false,
+                            drawTicks: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Doanh Thu (VNĐ)',
+                            font: {
+                                size: 15,
+                                weight: '700',
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#1e293b',
+                            padding: {
+                                top: 15,
+                                bottom: 15
+                            }
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    return (value / 1000000).toFixed(0) + 'M';
+                                } else if (value >= 1000) {
+                                    return (value / 1000).toFixed(0) + 'K';
+                                }
+                                return value.toString();
+                            },
+                            font: {
+                                size: 13,
+                                weight: '600',
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#475569',
+                            padding: 10,
+                            backdropColor: 'rgba(255, 255, 255, 0.8)'
+                        }
+                    }
+                } : {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(148, 163, 184, 0.15)',
+                            lineWidth: 1.5,
+                            drawBorder: false,
+                            drawTicks: false
+                        },
+                        title: {
+                            display: true,
+                            text: '💰 Doanh Thu (VNĐ)',
+                            font: {
+                                size: 15,
+                                weight: '700',
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#1e293b',
+                            padding: {
+                                top: 15,
+                                bottom: 15
+                            }
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000000) {
+                                    return (value / 1000000000).toFixed(1) + 'B';
+                                } else if (value >= 1000000) {
+                                    return (value / 1000000).toFixed(1) + 'M';
+                                } else if (value >= 1000) {
+                                    return (value / 1000).toFixed(0) + 'K';
+                                }
+                                return value.toString();
+                            },
+                            font: {
+                                size: 13,
+                                weight: '600',
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#475569',
+                            padding: 10,
+                            backdropColor: 'rgba(255, 255, 255, 0.8)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: {
+                            drawOnChartArea: false,
+                            color: 'rgba(148, 163, 184, 0.1)',
+                            drawTicks: false
+                        },
+                        title: {
+                            display: true,
+                            text: '📄 Số Hóa Đơn',
+                            font: {
+                                size: 15,
+                                weight: '700',
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#1e293b',
+                            padding: {
+                                top: 15,
+                                bottom: 15
+                            }
+                        },
+                        ticks: {
+                            font: {
+                                size: 13,
+                                weight: '600',
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#475569',
+                            padding: 10,
+                            stepSize: 1,
+                            backdropColor: 'rgba(255, 255, 255, 0.8)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: true,
+                            color: 'rgba(148, 163, 184, 0.1)',
+                            drawBorder: false,
+                            drawTicks: false
+                        },
+                        ticks: {
+                            maxRotation: type === 'daily' ? 45 : 0,
+                            minRotation: type === 'daily' ? 45 : 0,
+                            font: {
+                                size: 13,
+                                weight: '600',
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#475569',
+                            padding: 12
+                        },
+                        title: {
+                            display: true,
+                            text: type === 'daily' ? '📅 Ngày' : type === 'monthly' ? '📅 Tháng' : '📅 Năm',
+                            font: {
+                                size: 15,
+                                weight: '700',
+                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+                            },
+                            color: '#1e293b',
+                            padding: {
+                                top: 15,
+                                bottom: 10
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('Lỗi khi load biểu đồ:', error);
+        alert('Có lỗi xảy ra khi tải dữ liệu biểu đồ. Vui lòng thử lại sau.');
+    }
+}
+
+// ============================================
+// MODAL CHI TIẾT BẢO TRÌ
+// ============================================
+
+/**
+ * Hàm: openMaintenanceModal()
+ * Mô tả: Mở modal hiển thị chi tiết bảo trì đang thực hiện
+ */
+function openMaintenanceModal() {
+    const modal = document.getElementById('maintenanceModal');
+    if (!modal) return;
+    
+    // Hiển thị modal
+    modal.style.display = 'block';
+    
+    // Load và hiển thị danh sách bảo trì
+    loadMaintenanceList();
+}
+
+/**
+ * Hàm: closeMaintenanceModal()
+ * Mô tả: Đóng modal bảo trì
+ */
+function closeMaintenanceModal() {
+    const modal = document.getElementById('maintenanceModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * Hàm: loadMaintenanceList()
+ * Mô tả: Load và hiển thị danh sách bảo trì đang thực hiện
+ */
+function loadMaintenanceList() {
+    const container = document.getElementById('maintenanceList');
+    if (!container) return;
+    
+    // Lấy danh sách bảo trì đang thực hiện đã được lưu
+    const baotriList = window.baotriDangThucHienList || [];
+    
+    if (!baotriList || baotriList.length === 0) {
+        container.innerHTML = '<p class="empty-state">Không có bảo trì nào đang thực hiện</p>';
+        return;
+    }
+    
+    // Tạo HTML cho danh sách bảo trì
+    container.innerHTML = baotriList.map(bt => {
+        // Format ngày bảo trì
+        const ngayBaoTri = bt.NgayBaoTri 
+            ? new Date(bt.NgayBaoTri).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            })
+            : (bt.isTramMaintenance ? 'Đang diễn ra' : 'Chưa có');
+        
+        // Xác định loại bảo trì
+        const loaiBaoTri = bt.MaCot ? 'Bảo trì cột sạc' : 'Bảo trì toàn trạm';
+        const tenCot = bt.MaCot ? `Cột ${escapeHtml(bt.MaCot)}` : '';
+        const loaiCongSac = bt.LoaiCongSac ? `(${escapeHtml(bt.LoaiCongSac)})` : '';
+        
+        // Tên trạm
+        const tenTram = bt.TenTram || bt.MaTram || 'Chưa xác định';
+        
+        // Trạng thái với màu sắc
+        const trangThai = bt.TrangThai || (bt.isTramMaintenance ? 'Đang thực hiện' : 'Chưa xác định');
+        const statusClass = trangThai === 'Hoàn tất' ? 'completed' : 'in-progress';
+        
+        // Mã bảo trì - nếu là bảo trì trạm không có trong bảng BaoTri
+        const maBT = bt.MaBT || (bt.isTramMaintenance ? `Trạm ${escapeHtml(bt.MaTram)}` : 'N/A');
+        
+        return `
+            <div class="maintenance-item ${statusClass}">
+                <div class="maintenance-header">
+                    <div class="maintenance-id">
+                        <strong>${maBT}</strong>
+                        <span class="maintenance-status ${statusClass}">${escapeHtml(trangThai)}</span>
+                    </div>
+                    <div class="maintenance-date">
+                        <i class="fas fa-calendar"></i>
+                        ${ngayBaoTri}
+                    </div>
+                </div>
+                
+                <div class="maintenance-content">
+                    <div class="maintenance-detail">
+                        <i class="fas fa-info-circle"></i>
+                        <span><strong>Nội dung:</strong> ${escapeHtml(bt.NoiDung || (bt.isTramMaintenance ? 'Bảo trì toàn trạm' : 'Chưa có'))}</span>
+                    </div>
+                    
+                    ${bt.TenNhanVien || bt.MaNV ? `
+                    <div class="maintenance-detail">
+                        <i class="fas fa-user-tie"></i>
+                        <span><strong>Nhân viên:</strong> ${escapeHtml(bt.TenNhanVien || bt.MaNV || 'Chưa xác định')}</span>
+                        ${bt.ChucVu ? `<span class="detail-badge">${escapeHtml(bt.ChucVu)}</span>` : ''}
+                    </div>
+                    ` : ''}
+                    
+                    <div class="maintenance-detail">
+                        <i class="fas fa-building"></i>
+                        <span><strong>Trạm:</strong> ${escapeHtml(tenTram)}</span>
+                        ${bt.isTramMaintenance ? '<span class="detail-badge" style="background: #fef3c7; color: #92400e;">Toàn trạm</span>' : ''}
+                    </div>
+                    
+                    ${bt.MaCot ? `
+                    <div class="maintenance-detail">
+                        <i class="fas fa-plug"></i>
+                        <span><strong>${loaiBaoTri}:</strong> ${tenCot} ${loaiCongSac}</span>
+                    </div>
+                    ` : bt.isTramMaintenance ? '' : `
+                    <div class="maintenance-detail">
+                        <i class="fas fa-tools"></i>
+                        <span><strong>Loại:</strong> ${loaiBaoTri}</span>
+                    </div>
+                    `}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Đóng modal khi click bên ngoài
+window.addEventListener('click', function(event) {
+    const revenueModal = document.getElementById('revenueChartModal');
+    if (event.target === revenueModal) {
+        closeRevenueChartModal();
+    }
+    
+    const maintenanceModal = document.getElementById('maintenanceModal');
+    if (event.target === maintenanceModal) {
+        closeMaintenanceModal();
+    }
+});
+
+// Đảm bảo function có thể truy cập được từ main.js
+// Function declaration được hoisted, nhưng để chắc chắn, expose ra window
+if (typeof window !== 'undefined') {
+    window.loadDashboard = loadDashboard;
+}
+
 

@@ -682,14 +682,19 @@ async function openTramSacModal(matram = null) {
                     >
                 </div>
                 
-                <!-- Trạng thái -->
+                <!-- Trạng thái (chỉ hiển thị, không cho chỉnh sửa) -->
                 <div class="form-group">
-                    <label for="tramsac-trangthai">Trạng Thái <span class="required">*</span></label>
-                    <select id="tramsac-trangthai" name="TrangThai" required>
-                        <option value="Hoạt động">Hoạt động</option>
-                        <option value="Bảo trì">Bảo trì</option>
-                        <option value="Ngừng hoạt động">Ngừng hoạt động</option>
-                    </select>
+                    <label for="tramsac-trangthai">Trạng Thái</label>
+                    <input 
+                        type="text" 
+                        id="tramsac-trangthai" 
+                        name="TrangThai" 
+                        readonly
+                        disabled
+                        style="background-color: #f5f5f5; cursor: not-allowed;"
+                        placeholder="Trạng thái chỉ được thay đổi tự động"
+                    >
+                    <small class="form-hint" style="color: #666;">Trạng thái chỉ được thay đổi tự động khi tạo bảo trì</small>
                 </div>
                 
                 <!-- Các nút hành động -->
@@ -730,7 +735,11 @@ async function openTramSacModal(matram = null) {
             document.getElementById('tramsac-tentram').value = tram.TenTram || '';
             document.getElementById('tramsac-diachi').value = tram.DiaChi || '';
             document.getElementById('tramsac-thanhpho').value = tram.ThanhPho || '';
-            document.getElementById('tramsac-trangthai').value = tram.TrangThai || 'Hoạt động';
+            // Trạng thái chỉ hiển thị, không cho chỉnh sửa
+            const trangThaiInput = document.getElementById('tramsac-trangthai');
+            if (trangThaiInput) {
+                trangThaiInput.value = tram.TrangThai || 'Hoạt động';
+            }
             
         } catch (error) {
             // Xử lý lỗi
@@ -832,8 +841,8 @@ async function saveTramSac(event) {
         MaTram: formData.get('MaTram')?.trim().toUpperCase() || '',      // Chuyển sang chữ hoa
         TenTram: formData.get('TenTram')?.trim() || '',
         DiaChi: formData.get('DiaChi')?.trim() || '',
-        ThanhPho: formData.get('ThanhPho')?.trim() || '',
-        TrangThai: formData.get('TrangThai') || 'Hoạt động'
+        ThanhPho: formData.get('ThanhPho')?.trim() || ''
+        // Không gửi TrangThai - trạng thái chỉ được thay đổi tự động từ bảo trì
     };
     
     // Validate dữ liệu
